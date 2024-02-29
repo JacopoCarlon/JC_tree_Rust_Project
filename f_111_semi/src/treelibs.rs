@@ -6,6 +6,7 @@ use std::io;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
+#[allow(dead_code)]
 pub enum ANSIColor {
     BLACK,
     RED,
@@ -18,6 +19,7 @@ pub enum ANSIColor {
     RESET,
 }
 
+#[allow(dead_code)]
 impl ANSIColor {
     pub fn as_string(&self) -> &str {
         match self {
