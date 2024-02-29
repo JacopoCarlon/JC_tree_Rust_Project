@@ -34,15 +34,15 @@
     -   print nicely the dir-tree
 */
 
-#[macro_use]
-extern crate Parser;
+//  #[macro_use]
+//  extern crate Parser;
 
 //  extern crate tree;
 mod treelibs;
 use treelibs::*;
 
 use std::path::PathBuf;
-use Parser::Parser;
+use clap::Parser;
 
 use std::process;
 
@@ -53,43 +53,44 @@ use std::process;
 
 
 #[derive(Parser, Debug)]
-#[Parser(name = "rstree")]
+//  #[Parser(name = "rstree")]
 pub struct Opt {
     /// Print all files, including hidden
-    #[Parser(short = "a", default_value = False)]
+    #[clap(short = 'a', default_value = "false")]
     show_hidden: bool,
 
     /// Print only directories
-    #[Parser(short = "d", default_value = False)]
+    #[clap(short = 'd', default_value = "false")]
     only_dir: bool,
 
     /// Follow sym-links if they point to directories, as if they were directories
-    #[Parser(short = "l", default_value = False)]
+    #[clap(short = 'l', default_value = "false")]
     follow_symlink: bool,
 
     /// Colorize output
-    #[Parser(short = "c", default_value = False)]
+    #[clap(short = 'c', default_value = "false")]
     colorize: bool,
 
     /// Print file type and permissions, as per "ls -l"
-    #[Parser(short = "p", default_value = False)]
+    #[clap(short = 'p', default_value = "false")]
     p_type_perms: bool,
 
     /// Set the depth of the iteraton, if 0 it goes to depth infinity
-    #[Parser(short = "L", default_value = "0")]
+    #[clap(short = 'L', default_value = "0")]
     level: usize,
 
     /// do not descend directories with more than # entries
-    #[Parser(short = )]
+    #[clap(long, default_value = "0")]
+    filelimit: usize,
 
     /// Directory to start with
-    #[Parser(name = "DIRECTORY", default_value = ".", parse(from_os_str))]
+    #[clap(name = "DIRECTORY", default_value = ".")]
     directory: PathBuf,
 }
 
 
 fn main() {
-    let opt = Opt::from_args();
+    let opt = Opt::parse();
     println!("{:?}", opt);
 
     if let Err(e) = treelibs::run(opt.show_hidden, opt.colorize, opt.level, &opt.directory) {
