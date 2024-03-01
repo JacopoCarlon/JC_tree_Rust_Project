@@ -182,6 +182,45 @@ fn visit_dirs(
     Ok(())
 }
 
+
+
+
+fn visit_base(
+    base: &Path,             // done
+    _depth: usize,           // done
+    _level: usize,           // done         // -L 3
+    prefix: String,         // done 
+    colorize: bool,         // done         // -c   //  TODO : need revision with new functions !!!
+    _show_hidden: bool,      // done         // -a
+    _only_dir: bool,         // done new !   // -d
+    _follow_symlink: bool,   // done new !   // -l 
+    p_type_perms:bool,      // -p
+    _filelimit: usize,       // done new !   // --filelimit 10
+    ) -> io::Result<()> 
+{    
+    //  println!("debug : {}", base.display());
+    let true_base_dir = PathBuf::from(&base);
+    let canonicalized_base = fs::canonicalize(&true_base_dir)?;
+    
+    let mtd = fs::symlink_metadata(&base)?;
+    let perms = mtd.permissions();
+
+    let symlink = match fs::read_link(base) {
+        Ok(v) => v,
+        Err(_err) => PathBuf::new(),
+    };
+
+    if p_type_perms{
+        println!("{}[{:o}] {}", prefix, perms.mode(), color_output(colorize, &base)?);
+    } else{
+        println!("{}{}", prefix, color_output(colorize, &base)?);
+    }
+
+    Ok(())
+}
+
+
+
 fn is_executable(path: &Path) -> bool {
     let metadata = match fs::symlink_metadata(&path) {
         Ok(value) => value,
@@ -253,6 +292,7 @@ pub fn run(
     dir: &Path,
     ) -> Result<(), Box<dyn Error>> 
 {
+    visit_base(&dir, 0, level, String::from(""), colorize, show_hidden, only_dir, follow_symlink, p_type_perms, filelimit)?;
     // visit_dirs(dir, depth, level, prefix, colorize, show_hidden, only_dir, follow_symlink, p_type_perms, filelimit)
     visit_dirs(&dir, 0, level, String::from(""), colorize, show_hidden, only_dir, follow_symlink, p_type_perms, filelimit)?;
     Ok(())
