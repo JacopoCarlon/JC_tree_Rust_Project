@@ -67,7 +67,7 @@ fn visit_dirs(
     show_hidden: bool,      // done         // -a
     only_dir: bool,         // done new !   // -d
     follow_symlink: bool,   // done new !   // -l 
-    p_type_perms:bool,
+    p_type_perms:bool,      // -p
     filelimit: usize,       // done new !   // --filelimit 10
     ) -> io::Result<()> 
 {    
@@ -124,8 +124,15 @@ fn visit_dirs(
                 // if !only_dir || ( only_dir && path.is_dir() )
                 if !only_dir || path.is_dir()  
                 {
+                    if !p_type_perms{
                     //  println!("{}└── {}", prefix, color_output(colorize, &path)?);
                     println!("{}{}{}", prefix, FINAL_ENTRY, color_output(colorize, &path)?);
+                    }
+                    else{
+                        let mtd = fs::symlink_metadata(&path)?;
+                        let perms = mtd.permissions();
+                        println!("{}{}[{:o}] {}", prefix, FINAL_ENTRY, perms.mode(), color_output(colorize, &path)?);
+                    }
                 } 
                 if path.is_dir() 
                 {
@@ -145,8 +152,15 @@ fn visit_dirs(
                 // is not last element
                 if !only_dir || path.is_dir()  
                 {
-                    //  println!("{}├── {}", prefix, color_output(colorize, &path)?);
-                    println!("{}{}{}", prefix, OTHER_ENTRY, color_output(colorize, &path)?);
+                    if !p_type_perms{
+                        //  println!("{}├── {}", prefix, color_output(colorize, &path)?);
+                        println!("{}{}{}", prefix, OTHER_ENTRY, color_output(colorize, &path)?);
+                    }
+                    else{
+                        let mtd = fs::symlink_metadata(&path)?;
+                        let perms = mtd.permissions();
+                        println!("{}{}[{:o}] {}", prefix, OTHER_ENTRY, perms.mode(), color_output(colorize, &path)?);
+                    }
                 }
                 if path.is_dir() 
                 {

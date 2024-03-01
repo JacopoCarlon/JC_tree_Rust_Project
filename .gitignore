@@ -1,3 +1,9 @@
+# standard rust ignores
 **/debug/
 **/target/
+
+# ignore testing folder (symlink problems for git)
 **/test_stuff/
+
+# utilities screenshots
+**/capts/
