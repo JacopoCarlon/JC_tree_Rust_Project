@@ -6,8 +6,11 @@ use std::io;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
+
+
 #[allow(dead_code)]
-pub enum ANSIColor {
+pub enum ANSIColor 
+{
     BLACK,
     RED,
     GREEN,
@@ -19,8 +22,11 @@ pub enum ANSIColor {
     RESET,
 }
 
+
+
 #[allow(dead_code)]
-impl ANSIColor {
+impl ANSIColor 
+{
     pub fn as_string(&self) -> &str {
         match self {
             &ANSIColor::BLACK => "\u{001B}[0;30m",
@@ -36,19 +42,39 @@ impl ANSIColor {
     }
 }
 
+
+
+//  fn visit_dirs(
+//      dir: &Path,
+//      depth: usize,
+//      level: usize,
+//      prefix: String,
+//      colorize: bool,
+//      show_hidden: bool,
+//      ) -> io::Result<()> 
+
+
 fn visit_dirs(
-    dir: &Path,
-    depth: usize,
-    level: usize,
-    prefix: String,
-    colorize: bool,
-    show_hidden: bool,
-) -> io::Result<()> {
+    dir: &Path,             // done
+    depth: usize,           // done
+    level: usize,           // done
+    prefix: String,         // done
+    colorize: bool,         // done
+    show_hidden: bool,      // done
+    only_dir: bool,         // done new !
+    follow_symlink: bool,
+    p_type_perms:bool,
+    filelimit: usize,       // done new !
+    ) -> io::Result<()> 
+{    
+    // level == 0 -> go all the way
+    // level != 0 -> go only to depth==level
     if (level != 0) & (depth == level) {
         return Ok(());
     }
 
     if dir.is_dir() {
+        // get elements in this directory
         let entry_set = fs::read_dir(dir)?; // contains DirEntry
         let mut entries = entry_set
             .filter_map(|v| match v.ok() {
@@ -67,23 +93,51 @@ fn visit_dirs(
             })
             .collect::<Vec<_>>();
         entries.sort_by(|a, b| a.path().file_name().cmp(&b.path().file_name()));
+        
+        let num_entries: usize = entries.len();
+        // *filelimit* : if current dir has too many entries, print none
+        if (filelimit !=0) && num_entries > filelimit
+        {
+            println!("{}└── [{} entries exceeded filelimit, not opening dir]", prefix, num_entries);
+            return Ok(());
+        }
 
+
+        // apply only_dir condition
+        if only_dir
+        {
+            entries.retain(|x| x.path().is_dir())
+        }
+
+
+        // cycle through elements of current directory
         for (index, entry) in entries.iter().enumerate() {
             let path = entry.path();
-
+            
             if index == entries.len() - 1 {
-                println!("{}└── {}", prefix, color_output(colorize, &path)?);
-                if path.is_dir() {
+                // is last element
+                // if !only_dir || ( only_dir && path.is_dir() )
+                if !only_dir || path.is_dir()  
+                {
+                    println!("{}└── {}", prefix, color_output(colorize, &path)?);
+                } 
+                if path.is_dir() 
+                {
                     let depth = depth + 1;
                     let prefix_new = prefix.clone() + "    ";
-                    visit_dirs(&path, depth, level, prefix_new, colorize, show_hidden)?
+                    visit_dirs(&path, depth, level, prefix_new, colorize, show_hidden, only_dir, follow_symlink, p_type_perms, filelimit)?
                 }
             } else {
-                println!("{}├── {}", prefix, color_output(colorize, &path)?);
-                if path.is_dir() {
+                // is not last element
+                if !only_dir || path.is_dir()  
+                {
+                    println!("{}├── {}", prefix, color_output(colorize, &path)?);
+                }
+                if path.is_dir() 
+                {
                     let depth = depth + 1;
                     let prefix_new = prefix.clone() + "│   ";
-                    visit_dirs(&path, depth, level, prefix_new, colorize, show_hidden)?
+                    visit_dirs(&path, depth, level, prefix_new, colorize, show_hidden, only_dir, follow_symlink, p_type_perms, filelimit)?
                 }
             }
         }
@@ -143,7 +197,31 @@ fn color_output(colorize: bool, path: &Path) -> io::Result<String> {
     }
 }
 
-pub fn run(show_hidden: bool, colorize: bool, level: usize, dir: &Path) -> Result<(), Box<dyn Error>> {
-    visit_dirs(&dir, 0, level, String::from(""), colorize, show_hidden)?;
+
+
+
+
+
+//  function "run", gets all input flags and target dir, does search-and-print
+//  level 0 goes to depth-infinity
+//  filelimit 0 means no bound on files in dir
+pub fn run(
+    show_hidden: bool,
+    only_dir:bool,
+    follow_symlink:bool,
+    colorize: bool,
+    p_type_perms: bool,
+    level: usize,
+    filelimit: usize,
+    dir: &Path,
+    ) -> Result<(), Box<dyn Error>> 
+{
+    // visit_dirs(dir, depth, level, prefix, colorize, show_hidden, only_dir, follow_symlink, p_type_perms, filelimit)
+    visit_dirs(&dir, 0, level, String::from(""), colorize, show_hidden, only_dir, follow_symlink, p_type_perms, filelimit)?;
     Ok(())
 }
+
+
+
+
+

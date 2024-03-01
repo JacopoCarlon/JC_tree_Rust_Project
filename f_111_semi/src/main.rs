@@ -9,7 +9,7 @@
     where :
     -a
     All files are printed. By default tree does not print hidden files (those beginning with a dot '.'). In no event does tree print the file system constructs '.' (current directory) and '..' (previous directory).
-    
+
     -d
     List directories only.
 
@@ -26,7 +26,7 @@
     //  Do not descend directories that contain more than # entries.
 
     //  -o filename
-    //  Send output to filename.    
+    //  Send output to filename.
 
 */
 /*  the code will be divided in two phases:
@@ -41,16 +41,12 @@
 mod treelibs;
 //  use treelibs::*;
 
-use std::path::PathBuf;
 use clap::Parser;
+use std::path::PathBuf;
 
 use std::process;
 
-
-
-
 /// A tree clone written in Rust
-
 
 #[derive(Parser, Debug)]
 //  #[Parser(name = "rstree")]
@@ -88,12 +84,15 @@ pub struct Opt {
     directory: PathBuf,
 }
 
-
 fn main() {
     let opt = Opt::parse();
     println!("{:?}", opt);
 
-    if let Err(e) = treelibs::run(opt.show_hidden, opt.colorize, opt.level, &opt.directory) {
+    if let Err(e) = treelibs::run(  opt.show_hidden, opt.only_dir, opt.follow_symlink, 
+                                    opt.colorize, opt.p_type_perms, 
+                                    opt.level, opt.filelimit,
+                                    &opt.directory) 
+    {
         eprintln!("Application error: {}", e);
 
         process::exit(1);
