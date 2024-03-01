@@ -8,14 +8,14 @@
     tree [-ad] [-L level] [--nolinks] [directory ...]
     where :
     -a
-    All files are printed. By default tree does not print hidden files (those beginning with a dot '.'). 
+    All files are printed. By default tree does not print hidden files (those beginning with a dot '.').
     In no event does tree print the file system constructs '.' (current directory) and '..' (previous directory).
 
     -d
     List directories only.
 
     -l
-    Follows symbolic links if they point to directories, as if they were directories. 
+    Follows symbolic links if they point to directories, as if they were directories.
     Symbolic links that will result in recursion are avoided when detected.
 
     -p
@@ -90,11 +90,16 @@ fn main() {
     let opt = Opt::parse();
     println!("{:?}", opt);
 
-    if let Err(e) = treelibs::run(  opt.show_hidden, opt.only_dir, opt.follow_symlink, 
-                                    opt.colorize, opt.p_type_perms, 
-                                    opt.level, opt.filelimit,
-                                    &opt.directory) 
-    {
+    if let Err(e) = treelibs::run(
+        opt.show_hidden,
+        opt.only_dir,
+        opt.follow_symlink,
+        opt.colorize,
+        opt.p_type_perms,
+        opt.level,
+        opt.filelimit,
+        &opt.directory,
+    ) {
         eprintln!("Application error: {}", e);
 
         process::exit(1);
