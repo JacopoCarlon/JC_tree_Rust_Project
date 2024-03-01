@@ -6,7 +6,11 @@ use std::io;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
-
+#[allow(dead_code)]
+const OTHER_CHILD: &str = "│   "; // prefix: pipe
+const OTHER_ENTRY: &str = "├── "; // connector: tee
+const FINAL_CHILD: &str = "    "; // prefix: no siblings
+const FINAL_ENTRY: &str = "└── "; // connector: elbow
 
 #[allow(dead_code)]
 pub enum ANSIColor 
@@ -57,14 +61,14 @@ impl ANSIColor
 fn visit_dirs(
     dir: &Path,             // done
     depth: usize,           // done
-    level: usize,           // done
-    prefix: String,         // done
-    colorize: bool,         // done
-    show_hidden: bool,      // done
-    only_dir: bool,         // done new !
-    follow_symlink: bool,
+    level: usize,           // done         // -L 3
+    prefix: String,         // done 
+    colorize: bool,         // done         // -c   //  TODO : need revision with new functions !!!
+    show_hidden: bool,      // done         // -a
+    only_dir: bool,         // done new !   // -d
+    follow_symlink: bool,   // done new !   // -l 
     p_type_perms:bool,
-    filelimit: usize,       // done new !
+    filelimit: usize,       // done new !   // --filelimit 10
     ) -> io::Result<()> 
 {    
     // level == 0 -> go all the way
@@ -95,6 +99,7 @@ fn visit_dirs(
         entries.sort_by(|a, b| a.path().file_name().cmp(&b.path().file_name()));
         
         let num_entries: usize = entries.len();
+
         // *filelimit* : if current dir has too many entries, print none
         if (filelimit !=0) && num_entries > filelimit
         {
@@ -103,7 +108,7 @@ fn visit_dirs(
         }
 
 
-        // apply only_dir condition
+        // *only_dir* condition
         if only_dir
         {
             entries.retain(|x| x.path().is_dir())
@@ -119,24 +124,42 @@ fn visit_dirs(
                 // if !only_dir || ( only_dir && path.is_dir() )
                 if !only_dir || path.is_dir()  
                 {
-                    println!("{}└── {}", prefix, color_output(colorize, &path)?);
+                    //  println!("{}└── {}", prefix, color_output(colorize, &path)?);
+                    println!("{}{}{}", prefix, FINAL_ENTRY, color_output(colorize, &path)?);
                 } 
                 if path.is_dir() 
                 {
+                    let this_metadata = fs::symlink_metadata(&path)?;
+                    let this_is_symlink = this_metadata.file_type().is_symlink();
+                    if this_is_symlink && !follow_symlink
+                    {
+                        continue;
+                    }
+
                     let depth = depth + 1;
-                    let prefix_new = prefix.clone() + "    ";
+                    //  let prefix_new = prefix.clone() + "    ";
+                    let prefix_new = prefix.clone() + FINAL_CHILD;
                     visit_dirs(&path, depth, level, prefix_new, colorize, show_hidden, only_dir, follow_symlink, p_type_perms, filelimit)?
                 }
             } else {
                 // is not last element
                 if !only_dir || path.is_dir()  
                 {
-                    println!("{}├── {}", prefix, color_output(colorize, &path)?);
+                    //  println!("{}├── {}", prefix, color_output(colorize, &path)?);
+                    println!("{}{}{}", prefix, OTHER_ENTRY, color_output(colorize, &path)?);
                 }
                 if path.is_dir() 
                 {
+                    let this_metadata = fs::symlink_metadata(&path)?;
+                    let this_is_symlink = this_metadata.file_type().is_symlink();
+                    if this_is_symlink && !follow_symlink
+                    {
+                        continue;
+                    }
+
                     let depth = depth + 1;
-                    let prefix_new = prefix.clone() + "│   ";
+                    //  let prefix_new = prefix.clone() + "│   ";
+                    let prefix_new = prefix.clone() + OTHER_CHILD;
                     visit_dirs(&path, depth, level, prefix_new, colorize, show_hidden, only_dir, follow_symlink, p_type_perms, filelimit)?
                 }
             }

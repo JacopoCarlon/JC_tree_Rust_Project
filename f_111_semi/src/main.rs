@@ -8,13 +8,15 @@
     tree [-ad] [-L level] [--nolinks] [directory ...]
     where :
     -a
-    All files are printed. By default tree does not print hidden files (those beginning with a dot '.'). In no event does tree print the file system constructs '.' (current directory) and '..' (previous directory).
+    All files are printed. By default tree does not print hidden files (those beginning with a dot '.'). 
+    In no event does tree print the file system constructs '.' (current directory) and '..' (previous directory).
 
     -d
     List directories only.
 
     -l
-    Follows symbolic links if they point to directories, as if they were directories. Symbolic links that will result in recursion are avoided when detected.
+    Follows symbolic links if they point to directories, as if they were directories. 
+    Symbolic links that will result in recursion are avoided when detected.
 
     -p
     Print the file type and permissions for each file (as per ls -l).
