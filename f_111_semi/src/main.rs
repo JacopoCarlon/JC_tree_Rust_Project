@@ -69,9 +69,13 @@ pub struct Opt {
     #[clap(long, default_value = "false", group = "pippo")]
     keep_canonical: bool,
 
-    /// Colorize output
+    /// Print complete relative path prefix for all 
     #[clap(short = 'f', default_value = "false", group = "pippo")]
     full_path: bool,
+
+    /// Force base canonical
+    #[clap(long, default_value = "false")]
+    fbc: bool,
 
     /// Colorize output
     #[clap(short = 'c', default_value = "false")]
