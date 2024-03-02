@@ -66,8 +66,12 @@ pub struct Opt {
     follow_symlink: bool,
 
     /// Keep canonical : full prefix
-    #[clap(long, default_value = "false")]
+    #[clap(long, default_value = "false", group = "pippo")]
     keep_canonical: bool,
+
+    /// Colorize output
+    #[clap(short = 'f', default_value = "false", group = "pippo")]
+    full_path: bool,
 
     /// Colorize output
     #[clap(short = 'c', default_value = "false")]
@@ -94,17 +98,7 @@ fn main() {
     let opt = Opt::parse();
     println!("{:?}", opt);
 
-    if let Err(e) = treelibs::run(
-        opt.show_hidden,
-        opt.only_dir,
-        opt.follow_symlink,
-        opt.keep_canonical,
-        opt.colorize,
-        opt.p_type_perms,
-        opt.level,
-        opt.filelimit,
-        &opt.directory,
-    ) {
+    if let Err(e) = treelibs::run(&opt) {
         eprintln!("Application error: {}", e);
 
         process::exit(1);

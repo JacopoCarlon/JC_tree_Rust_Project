@@ -6,14 +6,12 @@ use std::io;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
-
+use crate::Opt;
 
 const OTHER_CHILD: &str = "│   "; // prefix: pipe
 const OTHER_ENTRY: &str = "├── "; // connector: tee
 const FINAL_CHILD: &str = "    "; // prefix: no siblings
 const FINAL_ENTRY: &str = "└── "; // connector: elbow
-
-
 
 #[allow(dead_code)]
 pub enum ANSIColor {
@@ -27,8 +25,6 @@ pub enum ANSIColor {
     WHITE,
     RESET,
 }
-
-
 
 #[allow(dead_code)]
 impl ANSIColor {
@@ -47,20 +43,19 @@ impl ANSIColor {
     }
 }
 
-
-
 fn visit_dirs(
     dir: &Path,           // done
     depth: usize,         // done
     level: usize,         // done         // -L 3
     prefix: String,       // done
-    keep_canonical:bool,  // todo         // -f
-    colorize: bool,       // done         // -c   //  TODO : need revision with new functions !!!
-    show_hidden: bool,    // done         // -a
-    only_dir: bool,       // done new !   // -d
+    keep_canonical: bool, // todo         // -f
+    full_path: bool,
+    colorize: bool, // done         // -c   //  TODO : need revision with new functions !!!
+    show_hidden: bool, // done         // -a
+    only_dir: bool, // done new !   // -d
     follow_symlink: bool, // done new !   // -l
-    p_type_perms: bool,   // done         // -p
-    filelimit: usize,     // done new !   // --filelimit 10
+    p_type_perms: bool, // done         // -p
+    filelimit: usize, // done new !   // --filelimit 10
 ) -> io::Result<()> {
     // level == 0 -> go all the way
     // level != 0 -> go only to depth==level
@@ -117,7 +112,7 @@ fn visit_dirs(
                             "{}{}{}",
                             prefix,
                             FINAL_ENTRY,
-                            color_output(colorize, &path, keep_canonical)?
+                            color_output(colorize, &path, keep_canonical, full_path)?
                         );
                     } else {
                         let mtd = fs::symlink_metadata(&path)?;
@@ -127,7 +122,7 @@ fn visit_dirs(
                             prefix,
                             FINAL_ENTRY,
                             perms.mode(),
-                            color_output(colorize, &path, keep_canonical)?
+                            color_output(colorize, &path, keep_canonical, full_path)?
                         );
                     }
                 }
@@ -147,6 +142,7 @@ fn visit_dirs(
                         level,
                         prefix_new,
                         keep_canonical,
+                        full_path,
                         colorize,
                         show_hidden,
                         only_dir,
@@ -163,7 +159,7 @@ fn visit_dirs(
                             "{}{}{}",
                             prefix,
                             OTHER_ENTRY,
-                            color_output(colorize, &path, keep_canonical)?
+                            color_output(colorize, &path, keep_canonical, full_path)?
                         );
                     } else {
                         let mtd = fs::symlink_metadata(&path)?;
@@ -173,7 +169,7 @@ fn visit_dirs(
                             prefix,
                             OTHER_ENTRY,
                             perms.mode(),
-                            color_output(colorize, &path, keep_canonical)?
+                            color_output(colorize, &path, keep_canonical, full_path)?
                         );
                     }
                 }
@@ -193,6 +189,7 @@ fn visit_dirs(
                         level,
                         prefix_new,
                         keep_canonical,
+                        full_path,
                         colorize,
                         show_hidden,
                         only_dir,
@@ -207,15 +204,14 @@ fn visit_dirs(
     Ok(())
 }
 
-
-
 // visit base directory
 fn visit_base(
     base: &Path,           // done
     _depth: usize,         // done
     _level: usize,         // done         // -L 3
     prefix: String,        // done
-    keep_canonical: bool,  // done         // -f
+    keep_canonical: bool,  // done         // --full_path
+    full_path: bool,       //done          -f
     colorize: bool,        // done         // -c   //  TODO : need revision with new functions !!!
     _show_hidden: bool,    // done         // -a
     _only_dir: bool,       // done new !   // -d
@@ -226,7 +222,7 @@ fn visit_base(
     //  //  println!("debug : {}", base.display());
     //  //  let true_base_dir = PathBuf::from(&base);
     //  //  let _canonicalized_base = fs::canonicalize(&true_base_dir)?;
-    
+
     let mtd = fs::symlink_metadata(&base)?;
     let perms = mtd.permissions();
     let _symlink = match fs::read_link(base) {
@@ -239,19 +235,18 @@ fn visit_base(
             "{}[{:o}] {}",
             prefix,
             perms.mode(),
-            color_output(colorize, &base, keep_canonical)?
+            color_output(colorize, &base, keep_canonical, full_path)?
         );
     } else {
-        println!("{}{}", 
-            prefix, 
-            color_output(colorize, &base, keep_canonical)?
+        println!(
+            "{}{}",
+            prefix,
+            color_output(colorize, &base, keep_canonical, full_path)?
         );
     }
 
     Ok(())
 }
-
-
 
 fn is_executable(path: &Path) -> bool {
     let metadata = match fs::symlink_metadata(&path) {
@@ -262,48 +257,60 @@ fn is_executable(path: &Path) -> bool {
     metadata.permissions().mode() & 0o111 != 0
 }
 
-
-
-fn color_output(colorize: bool, path: &Path, keep_canonical: bool) -> io::Result<String> {
-    
-    let filename : String;
-    let symlink : String;
+fn color_output(
+    colorize: bool,
+    path: &Path,
+    keep_canonical: bool,
+    full_path: bool,
+) -> io::Result<String> {
+    let filename: String;
+    let symlink: String;
     let parent = path.parent().unwrap();
     // .to_string_lossy().into_owned() == .to_str().unwrap().to_owned(), ma funziona anche se il path non è UTF8 valido
-    if !keep_canonical{
+    if !keep_canonical && !full_path {
         if path == Path::new(".") || path == Path::new("..") {
             filename = path.to_string_lossy().into_owned();
-        }else{
+        } else {
             filename = path.file_name().unwrap().to_string_lossy().into_owned();
         }
         symlink = match fs::read_link(path) {
             Ok(v) => v.to_string_lossy().into_owned(),
             Err(_err) => "".to_owned(),
         };
-    }else{
+    } else if full_path {
+        filename = path.to_string_lossy().into_owned();
+        symlink = match fs::read_link(path) {
+            Ok(v) => v.to_string_lossy().into_owned(),
+            Err(_err) => "".to_owned(),
+        };
+    } else {
         // keep canonical for all paths
-        filename = fs::canonicalize(parent).unwrap().join(path.file_name().unwrap()).to_string_lossy().into_owned();
+        filename = fs::canonicalize(parent)
+            .unwrap()
+            .join(path.file_name().unwrap())
+            .to_string_lossy()
+            .into_owned();
         if path.is_symlink() {
-            if parent.join(path.read_link().unwrap()).exists(){
-                symlink = fs::canonicalize(path).unwrap().to_string_lossy().into_owned();
-            }
-            else{
+            if parent.join(path.read_link().unwrap()).exists() {
+                symlink = fs::canonicalize(path)
+                    .unwrap()
+                    .to_string_lossy()
+                    .into_owned();
+            } else {
                 symlink = path.read_link().unwrap().to_string_lossy().into_owned();
             }
-        }else{
+        } else {
             symlink = "".to_owned();
-        }   
+        }
     }
 
-
-    
     // prepare print_name to print
     let print_name;
 
     if !symlink.is_empty() {
         print_name = format!("{} -> {}", filename, symlink);
     } else {
-        print_name = format!("{}",filename);
+        print_name = format!("{}", filename);
     }
 
     match colorize {
@@ -335,51 +342,40 @@ fn color_output(colorize: bool, path: &Path, keep_canonical: bool) -> io::Result
     }
 }
 
-
-
 //  function "run", gets all input flags and target dir, does search-and-print
 //  level 0 goes to depth-infinity
 //  filelimit 0 means no bound on files in dir
-pub fn run(
-    show_hidden: bool,
-    only_dir: bool,
-    follow_symlink: bool,
-    keep_canonical:bool,
-    colorize: bool,
-    p_type_perms: bool,
-    level: usize,
-    filelimit: usize,
-    dir: &Path,
-    ) -> Result<(), Box<dyn Error>> 
-{
+pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
     let mut force_base_canonical = false;
-    force_base_canonical |= keep_canonical;
+    force_base_canonical |= opt.keep_canonical;
     visit_base(
-        &dir,
+        &opt.directory,
         0,
-        level,
+        opt.level,
         String::from(""),
         force_base_canonical,
-        colorize,
-        show_hidden,
-        only_dir,
-        follow_symlink,
-        p_type_perms,
-        filelimit,
+        opt.full_path,
+        opt.colorize,
+        opt.show_hidden,
+        opt.only_dir,
+        opt.follow_symlink,
+        opt.p_type_perms,
+        opt.filelimit,
     )?;
     // visit_dirs(dir, depth, level, prefix, colorize, show_hidden, only_dir, follow_symlink, p_type_perms, filelimit)
     visit_dirs(
-        &dir,
+        &opt.directory,
         0,
-        level,
+        opt.level,
         String::from(""),
-        keep_canonical,
-        colorize,
-        show_hidden,
-        only_dir,
-        follow_symlink,
-        p_type_perms,
-        filelimit,
+        opt.keep_canonical,
+        opt.full_path,
+        opt.colorize,
+        opt.show_hidden,
+        opt.only_dir,
+        opt.follow_symlink,
+        opt.p_type_perms,
+        opt.filelimit,
     )?;
     Ok(())
 }
