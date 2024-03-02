@@ -4,7 +4,8 @@ use std::error::Error;
 use std::fs;
 use std::io;
 use std::os::unix::fs::PermissionsExt;
-use std::path::{Path, PathBuf};
+use std::path::Path;
+//  use std::path::PathBuf;
 
 use crate::Opt;
 
@@ -25,6 +26,18 @@ pub enum ANSIColor {
     White,
     Reset,
 }
+
+//  ------------------------- constants for permissions ------------------------- */
+// from : https://man7.org/linux/man-pages/man7/inode.7.html
+//  const S_IFSOCK :u32 =   0o0140000;   //   socket
+const S_IFLNK  :u32 =   0o0120000;   //   symbolic link
+const S_IFREG  :u32 =   0o0100000;   //   regular file
+//  const S_IFBLK  :u32 =   0o0060000;   //   block device
+const S_IFDIR  :u32 =   0o0040000;   //   directory
+//  const S_IFCHR  :u32 =   0o0020000;   //   character device
+//  const S_IFIFO  :u32 =   0o0010000;   //   FIFO
+//  ------------------------- constants for permissions ------------------------- */
+
 
 //  Checks for matches where all arms match a reference, 
 //  suggesting to remove the reference and deref the matched expression instead. 
@@ -47,6 +60,32 @@ impl ANSIColor {
 }
 
 
+fn stringify_permissions(perms : u32) -> String {
+    //  println!("{:o}", perms);
+    let mut vec_perms: Vec<char> = "rwxrwxrwx".chars().collect();
+    let mut b = 1;
+    let mut i = 0;
+    while i<9 {
+        if (perms & b) == 0{
+            vec_perms[8-i] = '-' ;
+        }
+        b = b<<1; 
+        i += 1;
+    }
+    //  println!("{:#?}", vec_perms);
+    let str_perms : String = vec_perms.into_iter().collect();
+    //  println!("{}", str_perms);  
+    let pre_string :String= match perms & 0o7770000 {
+        S_IFLNK => "l".to_string(),
+        S_IFREG => "-".to_string(),
+        S_IFDIR => "d".to_string(),
+        _       => "-".to_string(),
+    };
+    //  println!("{}", pre_string);
+    let tot_perm_str = pre_string + &str_perms;
+    //  println!("{}", tot_perm_str);
+    return tot_perm_str;
+}
 
 
 fn visit_dirs(
@@ -97,85 +136,60 @@ fn visit_dirs(
         // cycle through elements of current directory
         for (index, entry) in entries.iter().enumerate() {
             let path = entry.path();
-
-            if index == entries.len() - 1 {
-                // is last element
-                if !opt.only_dir || path.is_dir() {
-                    if !opt.p_type_perms {
-                        println!(
-                            "{}{}{}",
-                            prefix,
-                            FINAL_ENTRY,
-                            color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)?
-                        );
-                    } else {
-                        let mtd = fs::symlink_metadata(&path)?;
-                        let perms = mtd.permissions();
+            let entry_to_use = if index == entries.len()-1 {FINAL_ENTRY}else{OTHER_ENTRY};
+            let child_to_use = if index == entries.len()-1 {FINAL_CHILD}else{OTHER_CHILD};
+            
+            if !opt.only_dir || path.is_dir() {
+                // do all OR ( do only dirs AND is dir )
+                if opt.p_perms || opt.numperms {
+                    let mtd = fs::symlink_metadata(&path)?;
+                    let u32perms = mtd.permissions().mode(); 
+                    // here perms is a number
+                    if opt.numperms{
                         println!(
                             "{}{}[{:o}] {}",
                             prefix,
-                            FINAL_ENTRY,
-                            perms.mode(),
-                            color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)?
-                        );
-                    }
-                }
-                if path.is_dir() {
-                    let this_metadata = fs::symlink_metadata(&path)?;
-                    let this_is_symlink = this_metadata.file_type().is_symlink();
-                    if this_is_symlink && !opt.follow_symlink {
-                        continue;
-                    }
-
-                    let depth_new = depth + 1;
-                    //  let prefix_new = prefix.clone() + "    ";
-                    let prefix_new = prefix.clone() + FINAL_CHILD;
-                    visit_dirs(
-                        &path,
-                        prefix_new,
-                        depth_new,
-                        opt,
-                    )?
-                }
-            } else {
-                // is not last element
-                if !opt.only_dir || path.is_dir() {
-                    if !opt.p_type_perms {
-                        println!(
-                            "{}{}{}",
-                            prefix,
-                            OTHER_ENTRY,
+                            entry_to_use,
+                            u32perms,
                             color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)?
                         );
                     } else {
-                        let mtd = fs::symlink_metadata(&path)?;
-                        let perms = mtd.permissions();
+                        let tot_perm_str = stringify_permissions(u32perms);
                         println!(
-                            "{}{}[{:o}] {}",
+                            "{}{}[{}] {}",
                             prefix,
-                            OTHER_ENTRY,
-                            perms.mode(),
+                            entry_to_use,
+                            tot_perm_str,
                             color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)?
                         );
                     }
+                    
+                } else {
+                    println!(
+                        "{}{}{}",
+                        prefix,
+                        entry_to_use,
+                        color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)?
+                    );
+                } 
+            }
+            if path.is_dir() {
+                // enter path and tree() it
+                let this_metadata = fs::symlink_metadata(&path)?;
+                let this_is_symlink = this_metadata.file_type().is_symlink();
+                if this_is_symlink && !opt.follow_symlink {
+                    continue;
                 }
-                if path.is_dir() {
-                    let this_metadata = fs::symlink_metadata(&path)?;
-                    let this_is_symlink = this_metadata.file_type().is_symlink();
-                    if this_is_symlink && !opt.follow_symlink {
-                        continue;
-                    }
 
-                    let depth_new = depth + 1;
-                    //  let prefix_new = prefix.clone() + "│   ";
-                    let prefix_new = prefix.clone() + OTHER_CHILD;
-                    visit_dirs(
-                        &path,
-                        prefix_new,
-                        depth_new,
-                        opt,
-                    )?
-                }
+                let depth_new = depth + 1;
+                //  let prefix_new = prefix.clone() + "    ";
+                let prefix_new = prefix.clone() + child_to_use;
+                visit_dirs(
+                    &path,
+                    prefix_new,
+                    depth_new,
+                    opt,
+                )?
             }
         }
     }
@@ -184,31 +198,35 @@ fn visit_dirs(
 
 // visit base directory
 fn visit_base(
-    base: &Path,           // done
-    prefix: String,        // done
-    keep_canonical: bool,  // done         // --full_path
-    full_path: bool,       //done          -f
-    colorize: bool,        // done         // -c   
-    p_type_perms: bool,    // -p
+    base: &Path,            // done
+    prefix: String,         // done
+    keep_canonical: bool,   // done         // --full_path
+    full_path: bool,        //done          -f
+    colorize: bool,         // done         // -c   
+    p_perms: bool,          // -p
+    numperms: bool,         // --numperms
 ) -> io::Result<()> {
-    //  //  println!("debug : {}", base.display());
-    //  //  let true_base_dir = PathBuf::from(&base);
-    //  //  let _canonicalized_base = fs::canonicalize(&true_base_dir)?;
-
-    let mtd = fs::symlink_metadata(base)?;
-    let perms = mtd.permissions();
-    let _symlink = match fs::read_link(base) {
-        Ok(v) => v,
-        Err(_err) => PathBuf::new(),
-    };
-
-    if p_type_perms {
-        println!(
-            "{}[{:o}] {}",
-            prefix,
-            perms.mode(),
-            color_output(colorize, base, keep_canonical, full_path)?
-        );
+    
+    
+    if numperms || p_perms{
+        let mtd = fs::symlink_metadata(base)?;
+        let u32perms = mtd.permissions().mode();
+        if numperms{
+            println!(
+                "{}[{:o}] {}",
+                prefix,
+                u32perms,
+                color_output(colorize, base, keep_canonical, full_path)?
+            );
+        } else {
+            let tot_perm_str = stringify_permissions(u32perms);
+            println!(
+                "{}[{}] {}",
+                prefix,
+                tot_perm_str,
+                color_output(colorize, base, keep_canonical, full_path)?
+            );
+        }
     } else {
         println!(
             "{}{}",
@@ -225,7 +243,6 @@ fn is_executable(path: &Path) -> bool {
         Ok(value) => value,
         Err(_err) => return false,
     };
-
     metadata.permissions().mode() & 0o111 != 0
 }
 
@@ -332,7 +349,8 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
         resulting_canonical,
         resulting_full_path,
         opt.colorize,
-        opt.p_type_perms,
+        opt.p_perms,
+        opt.numperms,
     )?;
     visit_dirs(
         &opt.directory,

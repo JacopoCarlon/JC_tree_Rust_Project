@@ -66,11 +66,11 @@ pub struct Opt {
     follow_symlink: bool,
 
     /// Keep canonical : full prefix
-    #[clap(long, default_value = "false", group = "pippo")]
+    #[clap(long, default_value = "false", group = "extendPaths")]
     keep_canonical: bool,
 
     /// Print complete relative path prefix for all 
-    #[clap(short = 'f', default_value = "false", group = "pippo")]
+    #[clap(short = 'f', default_value = "false", group = "extendPaths")]
     full_path: bool,
 
     /// Force base canonical
@@ -82,8 +82,12 @@ pub struct Opt {
     colorize: bool,
 
     /// Print file type and permissions, as per "ls -l"
-    #[clap(short = 'p', default_value = "false")]
-    p_type_perms: bool,
+    #[clap(short = 'p', default_value = "false", group = "permissions")]
+    p_perms: bool,
+
+    /// Print numerical file permissions
+    #[clap(long, default_value = "false", group = "permissions")]
+    numperms: bool,
 
     /// Set the depth of the iteraton, if 0 it goes to depth infinity
     #[clap(short = 'L', default_value = "0")]
