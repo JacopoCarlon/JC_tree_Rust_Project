@@ -207,17 +207,17 @@ fn visit_dirs(
 // visit base directory
 fn visit_base(
     base: &Path,           // done
-    _depth: usize,         // done
-    _level: usize,         // done         // -L 3
+    //  _depth: usize,         // done
+    //  _level: usize,         // done         // -L 3
     prefix: String,        // done
     keep_canonical: bool,  // done         // --full_path
     full_path: bool,       //done          -f
     colorize: bool,        // done         // -c   //  TODO : need revision with new functions !!!
-    _show_hidden: bool,    // done         // -a
-    _only_dir: bool,       // done new !   // -d
-    _follow_symlink: bool, // done new !   // -l
+    //  _show_hidden: bool,    // done         // -a
+    //  _only_dir: bool,       // done new !   // -d
+    //  _follow_symlink: bool, // done new !   // -l
     p_type_perms: bool,    // -p
-    _filelimit: usize,     // done new !   // --filelimit 10
+    //  _filelimit: usize,     // done new !   // --filelimit 10
 ) -> io::Result<()> {
     //  //  println!("debug : {}", base.display());
     //  //  let true_base_dir = PathBuf::from(&base);
@@ -235,13 +235,13 @@ fn visit_base(
             "{}[{:o}] {}",
             prefix,
             perms.mode(),
-            color_output(colorize, &base, keep_canonical, full_path)?
+            color_output(colorize, base, keep_canonical, full_path)?
         );
     } else {
         println!(
             "{}{}",
             prefix,
-            color_output(colorize, &base, keep_canonical, full_path)?
+            color_output(colorize, base, keep_canonical, full_path)?
         );
     }
 
@@ -290,16 +290,17 @@ fn color_output(
             .join(path.file_name().unwrap())
             .to_string_lossy()
             .into_owned();
-        if path.is_symlink() {
-            if parent.join(path.read_link().unwrap()).exists() {
-                symlink = fs::canonicalize(path)
-                    .unwrap()
-                    .to_string_lossy()
-                    .into_owned();
-            } else {
-                symlink = path.read_link().unwrap().to_string_lossy().into_owned();
-            }
+        //if path.is_symlink() {
+        if parent.join(path.read_link().unwrap()).exists() {
+            symlink = fs::canonicalize(path)
+                .unwrap()
+                .to_string_lossy()
+                .into_owned();
         } else {
+            symlink = path.read_link().unwrap().to_string_lossy().into_owned();
+        }
+        //} 
+        else {
             symlink = "".to_owned();
         }
     }
@@ -350,17 +351,17 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
     force_base_canonical |= opt.keep_canonical;
     visit_base(
         &opt.directory,
-        0,
-        opt.level,
+        //  0,
+        //  opt.level,
         String::from(""),
         force_base_canonical,
         opt.full_path,
         opt.colorize,
-        opt.show_hidden,
-        opt.only_dir,
-        opt.follow_symlink,
+        //  opt.show_hidden,
+        //  opt.only_dir,
+        //  opt.follow_symlink,
         opt.p_type_perms,
-        opt.filelimit,
+        //  opt.filelimit,
     )?;
     // visit_dirs(dir, depth, level, prefix, colorize, show_hidden, only_dir, follow_symlink, p_type_perms, filelimit)
     visit_dirs(
