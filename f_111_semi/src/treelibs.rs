@@ -29,13 +29,14 @@ pub enum ANSIColor {
 
 //  ------------------------- constants for permissions ------------------------- */
 // from : https://man7.org/linux/man-pages/man7/inode.7.html
-//  const S_IFSOCK :u32 =   0o0140000;   //   socket
-const S_IFLNK  :u32 =   0o0120000;   //   symbolic link
-const S_IFREG  :u32 =   0o0100000;   //   regular file
-//  const S_IFBLK  :u32 =   0o0060000;   //   block device
-const S_IFDIR  :u32 =   0o0040000;   //   directory
-//  const S_IFCHR  :u32 =   0o0020000;   //   character device
-//  const S_IFIFO  :u32 =   0o0010000;   //   FIFO
+const S_IFMT   :u32 =   0o0170000;  // general mask
+//  const S_IFSOCK :u32 =   0o0140000;  //   socket
+const S_IFLNK  :u32 =   0o0120000;  //   symbolic link
+const S_IFREG  :u32 =   0o0100000;  //   regular file
+//  const S_IFBLK  :u32 =   0o0060000;  //   block device
+const S_IFDIR  :u32 =   0o0040000;  //   directory
+//  const S_IFCHR  :u32 =   0o0020000;  //   character device
+//  const S_IFIFO  :u32 =   0o0010000;  //   FIFO
 //  ------------------------- constants for permissions ------------------------- */
 
 
@@ -75,7 +76,7 @@ fn stringify_permissions(perms : u32) -> String {
     //  println!("{:#?}", vec_perms);
     let str_perms : String = vec_perms.into_iter().collect();
     //  println!("{}", str_perms);  
-    let pre_string :String= match perms & 0o7770000 {
+    let pre_string :String= match perms & S_IFMT {
         S_IFLNK => "l".to_string(),
         S_IFREG => "-".to_string(),
         S_IFDIR => "d".to_string(),
@@ -255,6 +256,7 @@ fn color_output(
     let filename: String;
     let symlink: String;
     let parent = path.parent().unwrap();
+    let mut is_sym_and_target_exists = false;
     //  .to_string_lossy().into_owned() == .to_str().unwrap().to_owned(), 
     //  ma funziona anche se il path non è UTF8 valido
     if !keep_canonical && !full_path {
@@ -294,40 +296,87 @@ fn color_output(
             symlink = "".to_owned();
         }
     }
+    if !symlink.is_empty(){
+        is_sym_and_target_exists = parent.join(path.read_link().unwrap()).exists();
+    }
 
     // prepare print_name to print
-    let print_name = if !symlink.is_empty() {
-        format!("{} -> {}", filename, symlink)
-    } else {
-        filename.to_string()
-    };
-
+    //  let print_name = if !symlink.is_empty() {
+    //      format!("{} -> {}", filename, symlink)
+    //  } else {
+    //      filename.to_string()
+    //  };
     match colorize {
         true => {
             if path.is_dir() {
-                Ok(format!(
-                    "{}{}{}",
-                    ANSIColor::Yellow.as_string(),
-                    print_name,
-                    ANSIColor::Reset.as_string()
-                ))
+                if !symlink.is_empty(){
+                    if is_sym_and_target_exists{
+                        Ok(format!(
+                            "{}{}{} -> {}{}{}",
+                            ANSIColor::Cyan.as_string(),
+                            filename,
+                            ANSIColor::Reset.as_string(),
+                            ANSIColor::Yellow.as_string(),
+                            symlink,
+                            ANSIColor::Reset.as_string()
+                        ))
+                    }else {
+                        Ok(format!(
+                            "{}{}{} -> {}",
+                            ANSIColor::Red.as_string(),
+                            filename,
+                            ANSIColor::Reset.as_string(),
+                            symlink,
+                        ))
+                    }
+                } else {
+                    Ok(format!(
+                        "{}{}{}",
+                        ANSIColor::Yellow.as_string(),
+                        filename,
+                        ANSIColor::Reset.as_string()
+                    ))
+                }
+
             } else if is_executable(path) {
-                Ok(format!(
-                    "{}{}{}",
-                    ANSIColor::Green.as_string(),
-                    print_name,
-                    ANSIColor::Reset.as_string()
-                ))
+                if !symlink.is_empty(){
+                    if is_sym_and_target_exists{
+                        Ok(format!(
+                            "{}{}{} -> {}{}{}",
+                            ANSIColor::Cyan.as_string(),
+                            filename,
+                            ANSIColor::Reset.as_string(),
+                            ANSIColor::Green.as_string(),
+                            symlink,
+                            ANSIColor::Reset.as_string()
+                        ))
+                    }else{
+                        Ok(format!(
+                            "{}{}{} -> {}",
+                            ANSIColor::Red.as_string(),
+                            filename,
+                            ANSIColor::Reset.as_string(),
+                            symlink,
+                        ))
+                    }
+                } else {
+                    Ok(format!(
+                        "{}{}{}",
+                        ANSIColor::Green.as_string(),
+                        filename,
+                        ANSIColor::Reset.as_string()
+                    ))
+                }
             } else {
                 Ok(format!(
                     "{}{}{}",
                     ANSIColor::Magenta.as_string(),
-                    print_name,
+                    filename,
                     ANSIColor::Reset.as_string()
                 ))
             }
         }
-        false => Ok(print_name.to_string()),
+        false => Ok(filename.to_string()),
     }
 }
 
