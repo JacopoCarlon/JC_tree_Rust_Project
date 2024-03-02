@@ -69,7 +69,7 @@ fn stringify_permissions(perms : u32) -> String {
         if (perms & b) == 0{
             vec_perms[8-i] = '-' ;
         }
-        b = b<<1; 
+        b<<=1; 
         i += 1;
     }
     //  println!("{:#?}", vec_perms);
@@ -82,9 +82,9 @@ fn stringify_permissions(perms : u32) -> String {
         _       => "-".to_string(),
     };
     //  println!("{}", pre_string);
-    let tot_perm_str = pre_string + &str_perms;
+    //  let tot_perm_str = pre_string + &str_perms;
     //  println!("{}", tot_perm_str);
-    return tot_perm_str;
+    pre_string + &str_perms
 }
 
 
