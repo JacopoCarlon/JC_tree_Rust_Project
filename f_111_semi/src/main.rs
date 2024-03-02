@@ -65,6 +65,10 @@ pub struct Opt {
     #[clap(short = 'l', default_value = "false")]
     follow_symlink: bool,
 
+    /// Keep canonical : full prefix
+    #[clap(long, default_value = "false")]
+    keep_canonical: bool,
+
     /// Colorize output
     #[clap(short = 'c', default_value = "false")]
     colorize: bool,
@@ -94,6 +98,7 @@ fn main() {
         opt.show_hidden,
         opt.only_dir,
         opt.follow_symlink,
+        opt.keep_canonical,
         opt.colorize,
         opt.p_type_perms,
         opt.level,
