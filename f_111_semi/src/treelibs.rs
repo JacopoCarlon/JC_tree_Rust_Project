@@ -290,16 +290,16 @@ fn color_output(
             .join(path.file_name().unwrap())
             .to_string_lossy()
             .into_owned();
-        //if path.is_symlink() {
-        if parent.join(path.read_link().unwrap()).exists() {
-            symlink = fs::canonicalize(path)
-                .unwrap()
-                .to_string_lossy()
-                .into_owned();
-        } else {
-            symlink = path.read_link().unwrap().to_string_lossy().into_owned();
-        }
-        //} 
+        if path.is_symlink() {
+            if parent.join(path.read_link().unwrap()).exists() {
+                symlink = fs::canonicalize(path)
+                    .unwrap()
+                    .to_string_lossy()
+                    .into_owned();
+            } else {
+                symlink = path.read_link().unwrap().to_string_lossy().into_owned();
+            }
+        } 
         else {
             symlink = "".to_owned();
         }
@@ -323,7 +323,7 @@ fn color_output(
                     print_name,
                     ANSIColor::RESET.as_string()
                 ))
-            } else if is_executable(&path) {
+            } else if is_executable(path) {
                 Ok(format!(
                     "{}{}{}",
                     ANSIColor::GREEN.as_string(),
@@ -339,7 +339,7 @@ fn color_output(
                 ))
             }
         }
-        false => Ok(format!("{}", print_name)),
+        false => Ok(print_name.to_string()),
     }
 }
 
