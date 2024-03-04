@@ -49,7 +49,6 @@ use std::path::PathBuf;
 use std::process;
 
 /// A tree clone written in Rust
-
 #[derive(Parser, Debug)]
 //  #[Parser(name = "rstree")]
 pub struct Opt {
@@ -69,7 +68,7 @@ pub struct Opt {
     #[clap(long, default_value = "false", group = "extendPaths")]
     keep_canonical: bool,
 
-    /// Print complete relative path prefix for all 
+    /// Print complete relative path prefix for all
     #[clap(short = 'f', default_value = "false", group = "extendPaths")]
     full_path: bool,
 
