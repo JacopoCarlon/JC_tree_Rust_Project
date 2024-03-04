@@ -213,16 +213,15 @@ fn visit_dirs(
                             "".to_string()
                         },
                         if opt.size {
-                            format!("{:17}bytes", realsize)
+                            format!("{:7}", realsize)
                         } else if opt.hsize || opt.hsize_ib {
                             if opt.hsize_ib {
                                 format!(
-                                    "{}iBytes",
+                                    "{:>7}iB",
                                     human_format::Formatter::new().format(realsize as f64)
                                 )
                             } else {
-                                //  format!("{:>9}", humanbytes(realsize))
-                                format!("{:>9}", convert(realsize))
+                                format!("{:>6}", convert(realsize))
                             }
                         } else {
                             "".to_string()
@@ -301,16 +300,15 @@ fn visit_base(
                 "".to_string()
             },
             if opt.size {
-                format!("{:17}bytes", realsize)
+                format!("{:7}bytes", realsize)
             } else if opt.hsize || opt.hsize_ib {
                 if opt.hsize_ib {
                     format!(
-                        "{}iBytes",
+                        "{:>7}iB",
                         human_format::Formatter::new().format(realsize as f64)
                     )
                 } else {
-                    //  format!("{:>9}", humanbytes(realsize))
-                    format!("{:>9}", convert(realsize))
+                    format!("{:>6}", convert(realsize))
                 }
             } else {
                 "".to_string()
