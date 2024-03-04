@@ -83,11 +83,15 @@ pub struct Opt {
 
     /// Print file type and permissions, as per "ls -l"
     #[clap(short = 'p', default_value = "false", group = "permissions")]
-    p_perms: bool,
+    perms: bool,
 
     /// Print numerical file permissions
     #[clap(long, default_value = "false", group = "permissions")]
-    numperms: bool,
+    num_perms: bool,
+
+    /// Ignore cycle avoidance methods, faster but risks symlink cycles
+    #[clap(long, default_value = "false")]
+    fast_rsc: bool,
 
     /// Set the depth of the iteraton, if 0 it goes to depth infinity
     #[clap(short = 'L', default_value = "0")]

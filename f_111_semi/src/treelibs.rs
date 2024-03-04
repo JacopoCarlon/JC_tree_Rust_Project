@@ -5,7 +5,7 @@ use std::fs;
 use std::io;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
-//  use std::path::PathBuf;
+use std::path::PathBuf;
 
 use crate::Opt;
 
@@ -90,7 +90,8 @@ fn stringify_permissions(perms : u32) -> String {
 
 
 fn visit_dirs(
-    dir: &Path,
+    dirs_visited: &mut Vec<PathBuf>,
+    dir: & Path,
     prefix: String,       
     depth: usize,         
     opt: &Opt,
@@ -101,6 +102,8 @@ fn visit_dirs(
         return Ok(());
     }
     if dir.is_dir() {
+        //  //  add it to visited dirs
+        //  //  dirs_visited.push(fs::canonicalize(&PathBuf::from(dir)).unwrap());
         // get elements in this directory
         let entry_set = fs::read_dir(dir)?; // contains DirEntry
         let mut entries = entry_set
@@ -119,6 +122,8 @@ fn visit_dirs(
             .collect::<Vec<_>>();
         entries.sort_by(|a, b| a.path().file_name().cmp(&b.path().file_name()));
 
+        //  here it could be possible to split the sort by "is_symlink", which would help avoiding symlink
+
         let num_entries: usize = entries.len();
 
         // if current dir has too many entries, print none
@@ -134,6 +139,13 @@ fn visit_dirs(
             entries.retain(|x| x.path().is_dir())
         }
 
+        // help avoid symlink cycles by pre-listing directories which will certainly be visited
+        for iter_entry in entries.iter(){
+            if iter_entry.path().is_dir(){
+                dirs_visited.push(fs::canonicalize(PathBuf::from(iter_entry.path())).unwrap() );
+            }
+        }
+
         // cycle through elements of current directory
         for (index, entry) in entries.iter().enumerate() {
             let path = entry.path();
@@ -142,11 +154,11 @@ fn visit_dirs(
             
             if !opt.only_dir || path.is_dir() {
                 // do all OR ( do only dirs AND is dir )
-                if opt.p_perms || opt.numperms {
+                if opt.perms || opt.num_perms {
                     let mtd = fs::symlink_metadata(&path)?;
                     let u32perms = mtd.permissions().mode(); 
                     // here perms is a number
-                    if opt.numperms{
+                    if opt.num_perms{
                         println!(
                             "{}{}[{:o}] {}",
                             prefix,
@@ -178,14 +190,28 @@ fn visit_dirs(
                 // enter path and tree() it
                 let this_metadata = fs::symlink_metadata(&path)?;
                 let this_is_symlink = this_metadata.file_type().is_symlink();
-                if this_is_symlink && !opt.follow_symlink {
-                    continue;
+                if this_is_symlink {
+                    //  println!("ad ora il visited-dir ha : {:#?}", dirs_visited);
+                    //  println!("ciao, il symlink punta qua : {}", fs::canonicalize(path.clone()).unwrap().display());
+                    // should we follow symlink 
+                    if !opt.follow_symlink{
+                        continue;
+                    } 
+                    // avoid symlink cycles ?????? todo
+                    if dirs_visited.contains(&fs::canonicalize(path.clone()).unwrap()){
+                        println!(
+                            "{}└── [symlink cycle detected, will not expand it]",
+                            prefix.clone() + child_to_use
+                        );
+                        continue;
+                    }
                 }
 
                 let depth_new = depth + 1;
                 //  let prefix_new = prefix.clone() + "    ";
                 let prefix_new = prefix.clone() + child_to_use;
                 visit_dirs(
+                    dirs_visited,
                     &path,
                     prefix_new,
                     depth_new,
@@ -204,15 +230,15 @@ fn visit_base(
     keep_canonical: bool,   // done         // --full_path
     full_path: bool,        //done          -f
     colorize: bool,         // done         // -c   
-    p_perms: bool,          // -p
-    numperms: bool,         // --numperms
+    perms: bool,          // -p
+    num_perms: bool,         // --num_perms
 ) -> io::Result<()> {
     
     
-    if numperms || p_perms{
+    if num_perms || perms{
         let mtd = fs::symlink_metadata(base)?;
         let u32perms = mtd.permissions().mode();
-        if numperms{
+        if num_perms{
             println!(
                 "{}[{:o}] {}",
                 prefix,
@@ -398,14 +424,20 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
         resulting_canonical,
         resulting_full_path,
         opt.colorize,
-        opt.p_perms,
-        opt.numperms,
+        opt.perms,
+        opt.num_perms,
     )?;
-    visit_dirs(
-        &opt.directory,
-        String::from(""),
-        0,
-        opt,
-    )?;
+    if opt.directory.is_dir(){
+        let mut dirs_visited = Vec::new();
+        // add it to visited dirs
+        dirs_visited.push(fs::canonicalize(&PathBuf::from(&opt.directory)).unwrap());
+        visit_dirs(
+            &mut dirs_visited,
+            &opt.directory,
+            String::from(""),
+            0,
+            opt,
+        )?;
+    }
     Ok(())
 }
