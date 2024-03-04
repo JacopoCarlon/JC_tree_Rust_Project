@@ -8,6 +8,7 @@ use std::io;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::path::PathBuf;
+use std::fs::File;
 //  use std::cmp;
 //  use filesize::PathExt;
 //  use bytesize::ByteSize;
@@ -215,11 +216,9 @@ fn visit_dirs(
                             format!("{:5}", realsize)
                         } else if opt.hsize || opt.hsize_ib {
                             if opt.hsize_ib {
-                                format!(
-                                    "{:>6} iB", convert(realsize, 1000_u64)
-                                )
+                                format!("{:>6} iB", convert(realsize, 1000_u64))
                             } else {
-                                format!("{:>6}", convert(realsize,1024_u64))
+                                format!("{:>6}", convert(realsize, 1024_u64))
                             }
                         } else {
                             "".to_string()
@@ -231,7 +230,7 @@ fn visit_dirs(
                         entry_to_use,
                         internal,
                         color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)
-                    )
+                    );
                 } else {
                     println!(
                         "{}{}{}",
@@ -302,9 +301,7 @@ fn visit_base(
                 format!("{:5}", realsize)
             } else if opt.hsize || opt.hsize_ib {
                 if opt.hsize_ib {
-                    format!(
-                        "{:>6} iB", convert(realsize, 1000_u64)
-                    )
+                    format!("{:>6} iB", convert(realsize, 1000_u64))
                 } else {
                     format!("{:>6}", convert(realsize, 1024_u64))
                 }
@@ -463,10 +460,28 @@ fn color_output(
     }
 }
 
+fn my_write(writer: &mut dyn std::io::Write, text:&str){
+    writeln!(writer, "{}", text);
+}
+
+
+
 //  function "run", gets all input flags and target dir, does search-and-print
 //  opt.level 0 goes to depth-infinity
 //  filelimit 0 means no bound on files in dir
 pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
+    let mut outfile;
+    let stdout = std::io::stdout();
+    let mut lockstdout = stdout.lock();
+    let file = File::create(PathBuf::from(&opt.target_file)).unwrap();
+    let mut buf_file = std::io::BufWriter::new(file);
+    if opt.target_file.is_empty(){
+        outfile = &mut lockstdout as &mut dyn std::io::Write;
+    } else {
+        outfile = &mut buf_file as &mut dyn std::io::Write;
+    }
+    my_write(outfile, "a");
+
     // force_base_canonical is a flavour implementation of tree of mine.
     //  let force_base_canonical = false;
     let mut resulting_canonical = opt.keep_canonical;
@@ -485,13 +500,13 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
     if opt.directory.is_dir() {
         let mut dirs_visited = Vec::new();
         // add it to visited dirs
-        if !opt.fast_rsc{
+        if !opt.fast_rsc {
             dirs_visited.push(fs::canonicalize(PathBuf::from(&opt.directory)).unwrap());
         }
-        if opt.ladv{
+        if opt.ladv {
             let tmp_buf = fs::canonicalize(opt.directory.as_path()).unwrap();
             let mut tmp_dir = tmp_buf.as_path();
-            while let Some(x) = tmp_dir.parent(){
+            while let Some(x) = tmp_dir.parent() {
                 dirs_visited.push(fs::canonicalize(PathBuf::from(&x)).unwrap());
                 tmp_dir = x;
             }

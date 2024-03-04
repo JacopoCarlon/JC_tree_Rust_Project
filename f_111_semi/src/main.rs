@@ -123,15 +123,18 @@ pub struct Opt {
     /// Directory to start with
     #[clap(name = "DIRECTORY", default_value = ".")]
     directory: PathBuf,
+
+    /// Save to target file
+    #[clap(short = 'o', default_value = "")]
+    target_file: String,
 }
 
 fn main() {
     let opt = Opt::parse();
-    println!("{:?}", opt);
+    //  println!("{:?}", opt);
 
-    if let Err(run_error) = treelibs::run(&opt) {
-        eprintln!("Application error: {}", run_error);
-
+    if let Err(_run_error) = treelibs::run(&opt) {
+        //  eprintln!("Application error: {}", _run_error);
         process::exit(1);
     }
 }
