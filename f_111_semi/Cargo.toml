@@ -2,7 +2,12 @@
 name = "f_111_semi"
 version = "0.1.0"
 edition = "2021"
-
+description = "Jacopo Carlon : rust implementation of <https://linux.die.net/man/1/tree>, with additional options and checks"
+repository = "https://github.com/JacopoCarlon/tree_Rust_Project"
+readme = "../README.md"
+keywords = ["tree", "rust", "options"]
+categories = ["command-line-utilities", "filesystem", "visualization"]
+license = "need my written approval and name :-)"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
