@@ -140,9 +140,11 @@ fn visit_dirs(
         }
 
         // help avoid symlink cycles by pre-listing directories which will certainly be visited
-        for iter_entry in entries.iter(){
-            if iter_entry.path().is_dir(){
-                dirs_visited.push(fs::canonicalize(PathBuf::from(iter_entry.path())).unwrap() );
+        if !opt.fast_rsc{
+            for iter_entry in entries.iter(){
+                if iter_entry.path().is_dir(){
+                    dirs_visited.push(fs::canonicalize(PathBuf::from(iter_entry.path())).unwrap() );
+                }
             }
         }
 
@@ -197,11 +199,12 @@ fn visit_dirs(
                     if !opt.follow_symlink{
                         continue;
                     } 
-                    // avoid symlink cycles ?????? todo
-                    if dirs_visited.contains(&fs::canonicalize(path.clone()).unwrap()){
+                    // avoid symlink cycles 
+                    if !opt.fast_rsc && dirs_visited.contains(&fs::canonicalize(path.clone()).unwrap()){
                         println!(
-                            "{}└── [symlink cycle detected, will not expand it]",
-                            prefix.clone() + child_to_use
+                            "{}{}[symlink cycle detected, will not expand it]",
+                            prefix.clone() + child_to_use,
+                            FINAL_ENTRY
                         );
                         continue;
                     }
@@ -414,7 +417,7 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
     //  let force_base_canonical = false;
     let mut resulting_canonical = opt.keep_canonical;
     let mut resulting_full_path = opt.full_path;
-    if opt.fbc{
+    if opt.base_canonical{
         resulting_canonical = true;
         resulting_full_path = false;
     }
@@ -430,7 +433,9 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
     if opt.directory.is_dir(){
         let mut dirs_visited = Vec::new();
         // add it to visited dirs
-        dirs_visited.push(fs::canonicalize(&PathBuf::from(&opt.directory)).unwrap());
+        if !opt.fast_rsc{
+            dirs_visited.push(fs::canonicalize(&PathBuf::from(&opt.directory)).unwrap());
+        }
         visit_dirs(
             &mut dirs_visited,
             &opt.directory,
@@ -438,6 +443,12 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
             0,
             opt,
         )?;
+    }else{
+        println!(
+            "{}{}[is not a directory]",
+            FINAL_CHILD,
+            FINAL_ENTRY
+        );
     }
     Ok(())
 }

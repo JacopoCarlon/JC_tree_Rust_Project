@@ -75,7 +75,7 @@ pub struct Opt {
 
     /// Force base canonical
     #[clap(long, default_value = "false")]
-    fbc: bool,
+    base_canonical: bool,
 
     /// Colorize output
     #[clap(short = 'c', default_value = "false")]
