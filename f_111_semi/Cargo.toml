@@ -13,3 +13,4 @@ license = "need my written approval and name :-)"
 [dependencies]
 clap = { version = "4.5.1", features = ["derive"] }
 walkdir = "2.3.2"
+filesize = "0.2.0"

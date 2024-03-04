@@ -64,13 +64,17 @@ pub struct Opt {
     #[clap(short = 'l', default_value = "false")]
     follow_symlink: bool,
 
-    /// Keep canonical : full prefix
+    /// Keep canonical : full canonicalized path
     #[clap(long, default_value = "false", group = "extendPaths")]
     keep_canonical: bool,
 
     /// Print complete relative path prefix for all
     #[clap(short = 'f', default_value = "false", group = "extendPaths")]
     full_path: bool,
+
+    ///Don't indent, useful if -f or --keep_canonical are used
+    #[clap(short = 'i', default_value = "false")]
+    no_indent: bool,
 
     /// Force base canonical
     #[clap(long, default_value = "false")]
@@ -87,6 +91,10 @@ pub struct Opt {
     /// Print numerical file permissions
     #[clap(long, default_value = "false", group = "permissions")]
     num_perms: bool,
+
+    /// Print file type and permissions, as per "ls -l"
+    #[clap(short = 's', default_value = "false")]
+    size: bool,
 
     /// Ignore cycle avoidance methods, faster but risks symlink cycles
     #[clap(long, default_value = "false")]

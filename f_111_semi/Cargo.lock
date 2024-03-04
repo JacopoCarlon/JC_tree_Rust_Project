@@ -101,7 +101,17 @@ name = "f_111_semi"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "filesize",
  "walkdir",
+]
+
+[[package]]
+name = "filesize"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12d741e2415d4e2e5bd1c1d00409d1a8865a57892c2d689b504365655d237d43"
+dependencies = [
+ "winapi",
 ]
 
 [[package]]
