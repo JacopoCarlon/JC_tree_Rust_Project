@@ -92,9 +92,17 @@ pub struct Opt {
     #[clap(long, default_value = "false", group = "permissions")]
     num_perms: bool,
 
-    /// Print file type and permissions, as per "ls -l"
-    #[clap(short = 's', default_value = "false")]
+    /// Print file size in bytes
+    #[clap(short = 's', default_value = "false", group = "filesize")]
     size: bool,
+
+    /// Print file size in bytes converted in human readable format : K, M, G...
+    #[clap(long, default_value = "false", group = "filesize")]
+    hsize_ib: bool,
+
+    /// Print file size in bytes converted in human readable format : K, M, G...
+    #[clap(long, default_value = "false", group = "filesize")]
+    hsize: bool,
 
     /// Ignore cycle avoidance methods, faster but risks symlink cycles
     #[clap(long, default_value = "false")]
@@ -117,8 +125,8 @@ fn main() {
     let opt = Opt::parse();
     println!("{:?}", opt);
 
-    if let Err(e) = treelibs::run(&opt) {
-        eprintln!("Application error: {}", e);
+    if let Err(run_error) = treelibs::run(&opt) {
+        eprintln!("Application error: {}", run_error);
 
         process::exit(1);
     }

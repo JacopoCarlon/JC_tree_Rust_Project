@@ -1,4 +1,6 @@
 //  extern crate Parser;
+extern crate bytesize;
+//  extern crate pretty_bytes;
 
 use std::error::Error;
 use std::fs;
@@ -6,7 +8,9 @@ use std::io;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::path::PathBuf;
-use filesize::PathExt;
+//  use filesize::PathExt;
+use bytesize::ByteSize;
+//  use pretty_bites::converter::convert;
 
 use crate::Opt;
 
@@ -14,7 +18,13 @@ const OTHER_CHILD: &str = "│   "; // prefix: pipe
 const OTHER_ENTRY: &str = "├── "; // connector: tee
 const FINAL_CHILD: &str = "    "; // prefix: no siblings
 const FINAL_ENTRY: &str = "└── "; // connector: elbow
-const NO_INDENT  : &str = "";       
+const NO_INDENT: &str = "";
+
+//  const PETA: u64 = 1_125_899_906_842_624;
+//  const TERA: u64 = 1_099_511_627_776;
+//  const GIGA: u64 = 1_073_741_824;
+//  const MEGA: u64 = 1_048_576;
+const KILO: u64 = 1_024;
 
 #[allow(dead_code)]
 pub enum ANSIColor {
@@ -31,18 +41,18 @@ pub enum ANSIColor {
 
 //  ------------------------- constants for permissions ------------------------- */
 // from : https://man7.org/linux/man-pages/man7/inode.7.html
-const S_IFMT:  u32 = 0o0_170_000;   //  general mask
-const S_IFLNK: u32 = 0o0_120_000;   //  symbolic link
-const S_IFREG: u32 = 0o0_100_000;   //  regular file
-const S_IFDIR: u32 = 0o0_040_000;   //  directory
-//  const S_IFSOCK :u32 =   0o0140000;  //  socket
-//  const S_IFBLK  :u32 =   0o0060000;  //  block device
-//  const S_IFCHR  :u32 =   0o0020000;  //  character device
-//  const S_IFIFO  :u32 =   0o0010000;  //  FIFO
-//  ------------------------- constants for permissions ------------------------- */
-//  Checks for matches where all arms match a reference,
-//  suggesting to remove the reference and deref the matched expression instead.
-//  It also checks for if let &foo = bar blocks.
+const S_IFMT: u32 = 0o0_170_000; //  general mask
+const S_IFLNK: u32 = 0o0_120_000; //  symbolic link
+const S_IFREG: u32 = 0o0_100_000; //  regular file
+const S_IFDIR: u32 = 0o0_040_000; //  directory
+                                  //  const S_IFSOCK :u32 =   0o0140000;  //  socket
+                                  //  const S_IFBLK  :u32 =   0o0060000;  //  block device
+                                  //  const S_IFCHR  :u32 =   0o0020000;  //  character device
+                                  //  const S_IFIFO  :u32 =   0o0010000;  //  FIFO
+                                  //  ------------------------- constants for permissions ------------------------- */
+                                  //  Checks for matches where all arms match a reference,
+                                  //  suggesting to remove the reference and deref the matched expression instead.
+                                  //  It also checks for if let &foo = bar blocks.
 #[allow(dead_code)]
 impl ANSIColor {
     pub fn as_string(&self) -> &str {
@@ -57,6 +67,14 @@ impl ANSIColor {
             ANSIColor::White => "\u{001B}[0;37m",
             ANSIColor::Reset => "\u{001B}[0;0m",
         }
+    }
+}
+
+fn humanbytes(numb: u64) -> String {
+    if numb > KILO - 1 {
+        ByteSize::b(numb).to_string()
+    } else {
+        format!("{}  B", numb)
     }
 }
 
@@ -141,10 +159,10 @@ fn visit_dirs(
             let path = entry.path();
             let entry_to_use;
             let child_to_use;
-            if opt.no_indent{
-                entry_to_use=NO_INDENT;
-                child_to_use=NO_INDENT
-            }else{
+            if opt.no_indent {
+                entry_to_use = NO_INDENT;
+                child_to_use = NO_INDENT
+            } else {
                 entry_to_use = if index == entries.len() - 1 {
                     FINAL_ENTRY
                 } else {
@@ -158,47 +176,47 @@ fn visit_dirs(
             }
             if !opt.only_dir || path.is_dir() {
                 // do all OR ( do only dirs AND is dir )
-                if opt.perms || opt.num_perms || opt.size {
-                    let mtd = fs::symlink_metadata(&path)?;
-                    let u32perms = mtd.permissions().mode();
+                if opt.perms || opt.num_perms || opt.size || opt.hsize || opt.hsize_ib {
                     let this_path = Path::new(&path);
-                    let realsize = this_path.size_on_disk_fast(&mtd).unwrap();
+                    let mtd = fs::symlink_metadata(this_path)?;
+                    let u32perms = mtd.permissions().mode();
+                    //  let realsize = this_path.size_on_disk_fast(&mtd).unwrap();
+                    //  let realsize = this_path.size_on_disk().unwrap();
+                    let realsize = mtd.len();
                     // here perms is a number
                     let tot_perm_str = stringify_permissions(u32perms);
-                    let internal = format!("[{}{}] ", 
-                        if opt.num_perms{
-                            format!("{:o }",u32perms)
-                        }else if opt.perms{
-                            tot_perm_str+" "
-                        }else{
+                    //  println!("{} - {}",this_path.display(), realsize);
+                    let internal = format!(
+                        "[{}{}] ",
+                        if opt.num_perms {
+                            format!("{:o }", u32perms)
+                        } else if opt.perms {
+                            tot_perm_str + " "
+                        } else {
+                            "".to_string()
+                        },
+                        if opt.size {
+                            format!("{:17}bytes", realsize)
+                        } else if opt.hsize || opt.hsize_ib {
+                            if opt.hsize_ib {
+                                format!(
+                                    "{}iBytes",
+                                    human_format::Formatter::new().format(realsize as f64)
+                                )
+                            } else {
+                                format!("{:>9}", humanbytes(realsize))
+                            }
+                        } else {
                             "".to_string()
                         }
-                        ,
-                        realsize              
-                        ) ;
-                    println!("{}{}{}{}",
-                        prefix, 
+                    );
+                    println!(
+                        "{}{}{}{}",
+                        prefix,
                         entry_to_use,
                         internal,
                         color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)
-                        )
-                    //  if opt.num_perms {
-                    //      println!(
-                    //          "{}{}[{:o}] {}",
-                    //          prefix,
-                    //          entry_to_use,
-                    //          u32perms,
-                    //          color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)
-                    //      );
-                    //  } else {
-                    //      println!(
-                    //          "{}{}[{}] {}",
-                    //          prefix,
-                    //          entry_to_use,
-                    //          tot_perm_str,
-                    //          color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)
-                    //      );
-                    //  }
+                    )
                 } else {
                     println!(
                         "{}{}{}",
