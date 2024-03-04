@@ -8,8 +8,9 @@ use std::io;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::path::PathBuf;
+//  use std::cmp;
 //  use filesize::PathExt;
-use bytesize::ByteSize;
+//  use bytesize::ByteSize;
 //  use pretty_bites::converter::convert;
 
 use crate::Opt;
@@ -24,7 +25,7 @@ const NO_INDENT: &str = "";
 //  const TERA: u64 = 1_099_511_627_776;
 //  const GIGA: u64 = 1_073_741_824;
 //  const MEGA: u64 = 1_048_576;
-const KILO: u64 = 1_024;
+//  const KILO: u64 = 1_024;
 
 #[allow(dead_code)]
 pub enum ANSIColor {
@@ -70,11 +71,27 @@ impl ANSIColor {
     }
 }
 
-fn humanbytes(numb: u64) -> String {
-    if numb > KILO - 1 {
-        ByteSize::b(numb).to_string()
+pub fn convert(num: u64) -> String {
+    let units = ["B", "K", "M", "G", "T", "P", "E", "Z", "Y"];
+    let delimiter = 1024_u64;
+    let f_delimiter = delimiter as f64;
+    let flnum = num as f64;
+    let mut runner: f64 = 1.0;
+    let mut counter = 0;
+    let mut old_counter = counter;
+    let mut ratio: f64 = flnum / runner;
+    let mut old_ratio: f64 = ratio;
+    while ratio > 1.0 {
+        old_ratio = ratio;
+        old_counter = counter;
+        counter += 1;
+        runner *= f_delimiter;
+        ratio = flnum / runner;
+    }
+    if old_counter > 0 {
+        format!("{:.1}{}", old_ratio, units[old_counter])
     } else {
-        format!("{}  B", numb)
+        format!("{}", old_ratio)
     }
 }
 
@@ -204,7 +221,8 @@ fn visit_dirs(
                                     human_format::Formatter::new().format(realsize as f64)
                                 )
                             } else {
-                                format!("{:>9}", humanbytes(realsize))
+                                //  format!("{:>9}", humanbytes(realsize))
+                                format!("{:>9}", convert(realsize))
                             }
                         } else {
                             "".to_string()
@@ -265,34 +283,50 @@ fn visit_base(
     prefix: &str,         // done
     keep_canonical: bool, // done         //  --full_path
     full_path: bool,      // done         //  -f
-    colorize: bool,       // done         //  -c
-    perms: bool,          // done         //  -p
-    num_perms: bool,      // done         //  --num_perms
+    opt: &Opt,
 ) -> io::Result<()> {
-    if num_perms || perms {
-        let mtd = fs::symlink_metadata(base)?;
+    if opt.perms || opt.num_perms || opt.size || opt.hsize || opt.hsize_ib {
+        let this_path = Path::new(&base);
+        let mtd = fs::symlink_metadata(this_path)?;
         let u32perms = mtd.permissions().mode();
-        if num_perms {
-            println!(
-                "{}[{:o}] {}",
-                prefix,
-                u32perms,
-                color_output(colorize, base, keep_canonical, full_path)
-            );
-        } else {
-            let tot_perm_str = stringify_permissions(u32perms);
-            println!(
-                "{}[{}] {}",
-                prefix,
-                tot_perm_str,
-                color_output(colorize, base, keep_canonical, full_path)
-            );
-        }
+        let realsize = mtd.len();
+        let tot_perm_str = stringify_permissions(u32perms);
+        let internal = format!(
+            "[{}{}] ",
+            if opt.num_perms {
+                format!("{:o }", u32perms)
+            } else if opt.perms {
+                tot_perm_str + " "
+            } else {
+                "".to_string()
+            },
+            if opt.size {
+                format!("{:17}bytes", realsize)
+            } else if opt.hsize || opt.hsize_ib {
+                if opt.hsize_ib {
+                    format!(
+                        "{}iBytes",
+                        human_format::Formatter::new().format(realsize as f64)
+                    )
+                } else {
+                    //  format!("{:>9}", humanbytes(realsize))
+                    format!("{:>9}", convert(realsize))
+                }
+            } else {
+                "".to_string()
+            }
+        );
+        println!(
+            "{}{}{}",
+            prefix,
+            internal,
+            color_output(opt.colorize, base, keep_canonical, full_path)
+        );
     } else {
         println!(
             "{}{}",
             prefix,
-            color_output(colorize, base, keep_canonical, full_path)
+            color_output(opt.colorize, base, keep_canonical, full_path)
         );
     }
 
@@ -450,9 +484,7 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
         "", //  &String::from("")
         resulting_canonical,
         resulting_full_path,
-        opt.colorize,
-        opt.perms,
-        opt.num_perms,
+        opt,
     )?;
     if opt.directory.is_dir() {
         let mut dirs_visited = Vec::new();

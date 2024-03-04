@@ -1,5 +1,5 @@
 perfect with :
-cargo clippy -- -Wclippy::all -Wclippy::restriction
+cargo clippy -- -Wclippy::all -Wclippy::cargo
 
 
 tested with :
