@@ -143,7 +143,7 @@ fn visit_dirs(
         if !opt.fast_rsc{
             for iter_entry in entries.iter(){
                 if iter_entry.path().is_dir(){
-                    dirs_visited.push(fs::canonicalize(PathBuf::from(iter_entry.path())).unwrap() );
+                    dirs_visited.push(fs::canonicalize(iter_entry.path()).unwrap() );
                 }
             }
         }
@@ -335,78 +335,76 @@ fn color_output(
     //  } else {
     //      filename.to_string()
     //  };
-    match colorize {
-        true => {
-            if path.is_dir() {
-                if !symlink.is_empty(){
-                    if is_sym_and_target_exists{
-                        Ok(format!(
-                            "{}{}{} -> {}{}{}",
-                            ANSIColor::Cyan.as_string(),
-                            filename,
-                            ANSIColor::Reset.as_string(),
-                            ANSIColor::Yellow.as_string(),
-                            symlink,
-                            ANSIColor::Reset.as_string()
-                        ))
-                    }else {
-                        Ok(format!(
-                            "{}{}{} -> {}",
-                            ANSIColor::Red.as_string(),
-                            filename,
-                            ANSIColor::Reset.as_string(),
-                            symlink,
-                        ))
-                    }
-                } else {
+    if colorize {
+        if path.is_dir() {
+            if !symlink.is_empty(){
+                if is_sym_and_target_exists{
                     Ok(format!(
-                        "{}{}{}",
-                        ANSIColor::Yellow.as_string(),
+                        "{}{}{} -> {}{}{}",
+                        ANSIColor::Cyan.as_string(),
                         filename,
+                        ANSIColor::Reset.as_string(),
+                        ANSIColor::Yellow.as_string(),
+                        symlink,
                         ANSIColor::Reset.as_string()
                     ))
-                }
-
-            } else if is_executable(path) {
-                if !symlink.is_empty(){
-                    if is_sym_and_target_exists{
-                        Ok(format!(
-                            "{}{}{} -> {}{}{}",
-                            ANSIColor::Cyan.as_string(),
-                            filename,
-                            ANSIColor::Reset.as_string(),
-                            ANSIColor::Green.as_string(),
-                            symlink,
-                            ANSIColor::Reset.as_string()
-                        ))
-                    }else{
-                        Ok(format!(
-                            "{}{}{} -> {}",
-                            ANSIColor::Red.as_string(),
-                            filename,
-                            ANSIColor::Reset.as_string(),
-                            symlink,
-                        ))
-                    }
-                } else {
+                }else {
                     Ok(format!(
-                        "{}{}{}",
-                        ANSIColor::Green.as_string(),
+                        "{}{}{} -> {}",
+                        ANSIColor::Red.as_string(),
                         filename,
-                        ANSIColor::Reset.as_string()
+                        ANSIColor::Reset.as_string(),
+                        symlink,
                     ))
                 }
             } else {
                 Ok(format!(
                     "{}{}{}",
-                    ANSIColor::Magenta.as_string(),
+                    ANSIColor::Yellow.as_string(),
                     filename,
                     ANSIColor::Reset.as_string()
                 ))
             }
+        } else if is_executable(path) {
+            if !symlink.is_empty(){
+                if is_sym_and_target_exists{
+                    Ok(format!(
+                        "{}{}{} -> {}{}{}",
+                        ANSIColor::Cyan.as_string(),
+                        filename,
+                        ANSIColor::Reset.as_string(),
+                        ANSIColor::Green.as_string(),
+                        symlink,
+                        ANSIColor::Reset.as_string()
+                    ))
+                }else{
+                    Ok(format!(
+                        "{}{}{} -> {}",
+                        ANSIColor::Red.as_string(),
+                        filename,
+                        ANSIColor::Reset.as_string(),
+                        symlink,
+                    ))
+                }
+            } else {
+                Ok(format!(
+                    "{}{}{}",
+                    ANSIColor::Green.as_string(),
+                    filename,
+                    ANSIColor::Reset.as_string()
+                ))
+            }
+        } else {
+            Ok(format!(
+                "{}{}{}",
+                ANSIColor::Magenta.as_string(),
+                filename,
+                ANSIColor::Reset.as_string()
+            ))
         }
-        false => Ok(filename.to_string()),
     }
+    else { Ok(filename.to_string())
+    }   
 }
 
 //  function "run", gets all input flags and target dir, does search-and-print
@@ -434,7 +432,7 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
         let mut dirs_visited = Vec::new();
         // add it to visited dirs
         if !opt.fast_rsc{
-            dirs_visited.push(fs::canonicalize(&PathBuf::from(&opt.directory)).unwrap());
+            dirs_visited.push(fs::canonicalize(PathBuf::from(&opt.directory)).unwrap());
         }
         visit_dirs(
             &mut dirs_visited,
@@ -445,7 +443,7 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
         )?;
     }else{
         println!(
-            "{}{}[is not a directory]",
+            "{}{}[given base is not a directory]",
             FINAL_CHILD,
             FINAL_ENTRY
         );
