@@ -1,5 +1,5 @@
 //  extern crate Parser;
-extern crate bytesize;
+//  extern crate bytesize;
 //  extern crate pretty_bytes;
 
 use std::error::Error;
@@ -71,9 +71,8 @@ impl ANSIColor {
     }
 }
 
-pub fn convert(num: u64) -> String {
+pub fn convert(num: u64, delimiter: u64) -> String {
     let units = ["B", "K", "M", "G", "T", "P", "E", "Z", "Y"];
-    let delimiter = 1024_u64;
     let f_delimiter = delimiter as f64;
     let flnum = num as f64;
     let mut runner: f64 = 1.0;
@@ -213,15 +212,14 @@ fn visit_dirs(
                             "".to_string()
                         },
                         if opt.size {
-                            format!("{:7}", realsize)
+                            format!("{:5}", realsize)
                         } else if opt.hsize || opt.hsize_ib {
                             if opt.hsize_ib {
                                 format!(
-                                    "{:>7}iB",
-                                    human_format::Formatter::new().format(realsize as f64)
+                                    "{:>6} iB", convert(realsize, 1000_u64)
                                 )
                             } else {
-                                format!("{:>6}", convert(realsize))
+                                format!("{:>6}", convert(realsize,1024_u64))
                             }
                         } else {
                             "".to_string()
@@ -300,15 +298,14 @@ fn visit_base(
                 "".to_string()
             },
             if opt.size {
-                format!("{:7}bytes", realsize)
+                format!("{:5}", realsize)
             } else if opt.hsize || opt.hsize_ib {
                 if opt.hsize_ib {
                     format!(
-                        "{:>7}iB",
-                        human_format::Formatter::new().format(realsize as f64)
+                        "{:>6} iB", convert(realsize, 1000_u64)
                     )
                 } else {
-                    format!("{:>6}", convert(realsize))
+                    format!("{:>6}", convert(realsize, 1024_u64))
                 }
             } else {
                 "".to_string()
