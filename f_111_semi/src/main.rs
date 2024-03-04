@@ -105,8 +105,12 @@ pub struct Opt {
     hsize: bool,
 
     /// Ignore cycle avoidance methods, faster but risks symlink cycles
-    #[clap(long, default_value = "false")]
+    #[clap(long, default_value = "false", group = "sym_cycle_mode")]
     fast_rsc: bool,
+
+    /// Advanced cycle detection and avoidance by pre-computing parents of target file
+    #[clap(long, default_value = "false", group = "sym_cycle_mode")]
+    ladv: bool,
 
     /// Set the depth of the iteraton, if 0 it goes to depth infinity
     #[clap(short = 'L', default_value = "0")]

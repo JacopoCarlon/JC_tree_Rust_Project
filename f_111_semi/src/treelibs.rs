@@ -256,6 +256,7 @@ fn visit_dirs(
                     if !opt.fast_rsc
                         && dirs_visited.contains(&fs::canonicalize(path.clone()).unwrap())
                     {
+                        //  println!("ad ora il visited-dir ha : {:#?}", dirs_visited);
                         println!(
                             "{}{}[symlink cycle detected, will not expand it]",
                             prefix.to_string() + child_to_use,
@@ -484,9 +485,18 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
     if opt.directory.is_dir() {
         let mut dirs_visited = Vec::new();
         // add it to visited dirs
-        if !opt.fast_rsc {
+        if !opt.fast_rsc{
             dirs_visited.push(fs::canonicalize(PathBuf::from(&opt.directory)).unwrap());
         }
+        if opt.ladv{
+            let tmp_buf = fs::canonicalize(opt.directory.as_path()).unwrap();
+            let mut tmp_dir = tmp_buf.as_path();
+            while let Some(x) = tmp_dir.parent(){
+                dirs_visited.push(fs::canonicalize(PathBuf::from(&x)).unwrap());
+                tmp_dir = x;
+            }
+        }
+        //  println!("vettore ora è : {:#?}", dirs_visited);
         visit_dirs(
             &mut dirs_visited,
             &opt.directory,
