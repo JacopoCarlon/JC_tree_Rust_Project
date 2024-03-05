@@ -9,6 +9,8 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::path::PathBuf;
 use std::fs::File;
+use std::io::BufWriter;
+use std::io::Write;
 //  use std::cmp;
 //  use filesize::PathExt;
 //  use bytesize::ByteSize;
@@ -123,12 +125,14 @@ fn stringify_permissions(perms: u32) -> String {
 }
 
 fn visit_dirs(
+    outfile: &mut dyn std::io::Write,
     dirs_visited: &mut Vec<PathBuf>,
     dir: &Path,
     prefix: &str,
     depth: usize,
     opt: &Opt,
 ) -> io::Result<()> {
+    my_write(outfile, "visitDir");
     // opt.level == 0 -> go all the way
     // opt.level != 0 -> go only to depth==opt.level
     if (opt.level != 0) & (depth == opt.level) {
@@ -267,7 +271,7 @@ fn visit_dirs(
                 let depth_new = depth + 1;
                 //  let prefix_new = prefix.clone() + "    ";
                 let prefix_new = prefix.to_string() + child_to_use;
-                visit_dirs(dirs_visited, &path, &prefix_new, depth_new, opt)?;
+                visit_dirs(outfile, dirs_visited, &path, &prefix_new, depth_new, opt)?;
             }
         }
     }
@@ -276,12 +280,14 @@ fn visit_dirs(
 
 // visit base directory
 fn visit_base(
+    outfile: &mut dyn std::io::Write,
     base: &Path,          // done
     prefix: &str,         // done
     keep_canonical: bool, // done         //  --full_path
     full_path: bool,      // done         //  -f
     opt: &Opt,
 ) -> io::Result<()> {
+    my_write(outfile, "visitBase");
     if opt.perms || opt.num_perms || opt.size || opt.hsize || opt.hsize_ib {
         let this_path = Path::new(&base);
         let mtd = fs::symlink_metadata(this_path)?;
@@ -461,25 +467,39 @@ fn color_output(
 }
 
 fn my_write(writer: &mut dyn std::io::Write, text:&str){
-    writeln!(writer, "{}", text);
+    writeln!(writer, "{}", text).unwrap();
 }
-
-
 
 //  function "run", gets all input flags and target dir, does search-and-print
 //  opt.level 0 goes to depth-infinity
 //  filelimit 0 means no bound on files in dir
 pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
-    let mut outfile;
-    let stdout = std::io::stdout();
-    let mut lockstdout = stdout.lock();
-    let file = File::create(PathBuf::from(&opt.target_file)).unwrap();
-    let mut buf_file = std::io::BufWriter::new(file);
-    if opt.target_file.is_empty(){
-        outfile = &mut lockstdout as &mut dyn std::io::Write;
+    //  //  solution with heap allocations :
+    //  let mut outfile: Box<dyn std::io::Write> = if opt.target_file.is_empty() {
+    //      let stdout = std::io::stdout();
+    //      let stdout = stdout.lock();
+    //      Box::new(stdout)
+    //  } else {
+    //      let file = File::create("my_file.txt").unwrap();
+    //      let buf_file = std::io::BufWriter::new(file);
+    //      Box::new(buf_file)
+    //  };
+    //  //  ---------------------------------------------
+    //  //  solution without heap allocations :
+    let outfile: &mut dyn Write;
+    let mut lockstdout;
+    let mut buf_file;
+
+    if opt.target_file.is_empty() {
+        let stdout = std::io::stdout();
+        lockstdout = stdout.lock();
+        outfile = &mut lockstdout;
     } else {
-        outfile = &mut buf_file as &mut dyn std::io::Write;
+        let file = File::create(&opt.target_file)?;
+        buf_file = BufWriter::new(file);
+        outfile = &mut buf_file;
     }
+
     my_write(outfile, "a");
 
     // force_base_canonical is a flavour implementation of tree of mine.
@@ -491,6 +511,7 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
         resulting_full_path = false;
     }
     visit_base(
+        outfile,
         &opt.directory,
         "", //  &String::from("")
         resulting_canonical,
@@ -513,6 +534,7 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
         }
         //  println!("vettore ora è : {:#?}", dirs_visited);
         visit_dirs(
+            outfile,
             &mut dirs_visited,
             &opt.directory,
             "", // &String::from("")
