@@ -2,8 +2,9 @@
 **/debug/
 **/target/
 
-# ignore testing folder (symlink problems for git)
+# ignore testing folders (symlink problems for git)
 **/test_stuff/
+**/test_other/
 
 # utilities screenshots
 **/capts/

@@ -18,7 +18,7 @@ use std::io::Write;
 
 use crate::Opt;
 
-const OTHER_CHILD: &str = "│   "; // prefix: pipe
+const OTHER_CHILD: &str = "│   "; // prefix: pipe
 const OTHER_ENTRY: &str = "├── "; // connector: tee
 const FINAL_CHILD: &str = "    "; // prefix: no siblings
 const FINAL_ENTRY: &str = "└── "; // connector: elbow
@@ -98,7 +98,6 @@ pub fn convert(num: u64, delimiter: u64) -> String {
 }
 
 fn stringify_permissions(perms: u32) -> String {
-    //  println!("{:o}", perms);
     let mut vec_perms: Vec<char> = "rwxrwxrwx".chars().collect();
     let mut b = 1;
     let mut i = 0;
@@ -109,18 +108,13 @@ fn stringify_permissions(perms: u32) -> String {
         b <<= 1;
         i += 1;
     }
-    //  println!("{:#?}", vec_perms);
     let str_perms: String = vec_perms.into_iter().collect();
-    //  println!("{}", str_perms);
     let pre_string: String = match perms & S_IFMT {
         S_IFLNK => "l".to_string(),
         S_IFDIR => "d".to_string(),
         S_IFREG => "-".to_string(),
         _ => "?".to_string(),
     };
-    //  println!("{}", pre_string);
-    //  let tot_perm_str = pre_string + &str_perms;
-    //  println!("{}", tot_perm_str);
     pre_string + &str_perms
 }
 
@@ -132,7 +126,7 @@ fn visit_dirs(
     depth: usize,
     opt: &Opt,
 ) -> io::Result<()> {
-    my_write(outfile, "visitDir");
+    //  my_write(outfile, "visitDir");
     // opt.level == 0 -> go all the way
     // opt.level != 0 -> go only to depth==opt.level
     if (opt.level != 0) & (depth == opt.level) {
@@ -158,10 +152,13 @@ fn visit_dirs(
         entries.sort_by(|a, b| a.path().file_name().cmp(&b.path().file_name()));
         let num_entries: usize = entries.len();
         // if current dir has too many entries, print none
+        //  println!("testing filelimit");
         if (opt.filelimit != 0) && num_entries > opt.filelimit {
-            println!(
-                "{}{}[{} entries exceeded filelimit, not printing dir]",
-                prefix, FINAL_ENTRY, num_entries
+            my_write(outfile, 
+                &format!(
+                    "{}{}[{} entries exceeded filelimit, not printing dir]",
+                    prefix, FINAL_ENTRY, num_entries
+                )
             );
             return Ok(());
         }
@@ -206,7 +203,6 @@ fn visit_dirs(
                     let realsize = mtd.len();
                     // here perms is a number
                     let tot_perm_str = stringify_permissions(u32perms);
-                    //  println!("{} - {}",this_path.display(), realsize);
                     let internal = format!(
                         "[{}{}] ",
                         if opt.num_perms {
@@ -228,19 +224,23 @@ fn visit_dirs(
                             "".to_string()
                         }
                     );
-                    println!(
-                        "{}{}{}{}",
-                        prefix,
-                        entry_to_use,
-                        internal,
-                        color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)
+                    my_write(outfile, 
+                        &format!(
+                            "{}{}{}{}",
+                            prefix,
+                            entry_to_use,
+                            internal,
+                            color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)
+                        )
                     );
                 } else {
-                    println!(
-                        "{}{}{}",
-                        prefix,
-                        entry_to_use,
-                        color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)
+                    my_write(outfile, 
+                        &format!(
+                            "{}{}{}",
+                            prefix,
+                            entry_to_use,
+                            color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)
+                        )
                     );
                 }
             }
@@ -249,8 +249,8 @@ fn visit_dirs(
                 let this_metadata = fs::symlink_metadata(&path)?;
                 let this_is_symlink = this_metadata.file_type().is_symlink();
                 if this_is_symlink {
-                    //  println!("ad ora il visited-dir ha : {:#?}", dirs_visited);
-                    //  println!("ciao, il symlink punta qua : {}", fs::canonicalize(path.clone()).unwrap().display());
+                    //  my_write(outfile, format!("ad ora il visited-dir ha : {:#?}", dirs_visited));
+                    //  my_write(outfile, format!("ciao, il symlink punta qua : {}", fs::canonicalize(path.clone()).unwrap().display()) );
                     // should we follow symlink
                     if !opt.follow_symlink {
                         continue;
@@ -259,11 +259,12 @@ fn visit_dirs(
                     if !opt.fast_rsc
                         && dirs_visited.contains(&fs::canonicalize(path.clone()).unwrap())
                     {
-                        //  println!("ad ora il visited-dir ha : {:#?}", dirs_visited);
-                        println!(
-                            "{}{}[symlink cycle detected, will not expand it]",
-                            prefix.to_string() + child_to_use,
-                            FINAL_ENTRY
+                        my_write(outfile, 
+                            &format!(
+                                "{}{}[symlink cycle detected, will not expand it]",
+                                prefix.to_string() + child_to_use,
+                                FINAL_ENTRY
+                            )
                         );
                         continue;
                     }
@@ -287,7 +288,7 @@ fn visit_base(
     full_path: bool,      // done         //  -f
     opt: &Opt,
 ) -> io::Result<()> {
-    my_write(outfile, "visitBase");
+    //  my_write(outfile, "visitBase");
     if opt.perms || opt.num_perms || opt.size || opt.hsize || opt.hsize_ib {
         let this_path = Path::new(&base);
         let mtd = fs::symlink_metadata(this_path)?;
@@ -315,17 +316,21 @@ fn visit_base(
                 "".to_string()
             }
         );
-        println!(
-            "{}{}{}",
-            prefix,
-            internal,
-            color_output(opt.colorize, base, keep_canonical, full_path)
+        my_write(outfile, 
+            &format!(
+                "{}{}{}",
+                prefix,
+                internal,
+                color_output(opt.colorize, base, keep_canonical, full_path)
+            )
         );
     } else {
-        println!(
-            "{}{}",
-            prefix,
-            color_output(opt.colorize, base, keep_canonical, full_path)
+        my_write(outfile, 
+            &format!(
+                "{}{}",
+                prefix,
+                color_output(opt.colorize, base, keep_canonical, full_path)
+            )
         );
     }
 
@@ -370,11 +375,16 @@ fn color_output(
         };
     } else {
         // keep canonical for all paths
-        filename = fs::canonicalize(parent)
-            .unwrap()
-            .join(path.file_name().unwrap())
-            .to_string_lossy()
-            .into_owned();
+        println!("parent is : {}", parent.display());
+        if parent.exists(){
+            filename = fs::canonicalize(parent)
+                .unwrap()
+                .join(path.file_name().unwrap())
+                .to_string_lossy()
+                .into_owned();
+        }else{
+            filename = "".to_string();
+        }
         if path.is_symlink() {
             if parent.join(path.read_link().unwrap()).exists() {
                 symlink = fs::canonicalize(path)
@@ -392,12 +402,6 @@ fn color_output(
         is_sym_and_target_exists = parent.join(path.read_link().unwrap()).exists();
     }
 
-    // prepare print_name to print
-    //  let print_name = if !symlink.is_empty() {
-    //      format!("{} -> {}", filename, symlink)
-    //  } else {
-    //      filename.to_string()
-    //  };
     if colorize {
         if path.is_dir() {
             if symlink.is_empty() {
@@ -499,8 +503,7 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
         buf_file = BufWriter::new(file);
         outfile = &mut buf_file;
     }
-
-    my_write(outfile, "a");
+    my_write(outfile, format!("{:?}",opt).as_str() );
 
     // force_base_canonical is a flavour implementation of tree of mine.
     //  let force_base_canonical = false;
@@ -532,7 +535,6 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
                 tmp_dir = x;
             }
         }
-        //  println!("vettore ora è : {:#?}", dirs_visited);
         visit_dirs(
             outfile,
             &mut dirs_visited,
@@ -542,9 +544,11 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
             opt,
         )?;
     } else {
-        println!(
-            "{}{}[given base is not a directory]",
-            FINAL_CHILD, FINAL_ENTRY
+        my_write(outfile, 
+            &format!(
+                "{}{}[given base is not a directory]",
+                FINAL_CHILD, FINAL_ENTRY
+            )
         );
     }
     Ok(())

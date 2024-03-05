@@ -1,0 +1,124 @@
+Opt { show_hidden: false, only_dir: false, follow_symlink: true, keep_canonical: false, full_path: false, no_indent: false, base_canonical: true, colorize: false, perms: true, num_perms: false, size: false, hsize_ib: false, hsize: true, fast_rsc: false, ladv: true, level: 7, filelimit: 11, directory: "..", target_file: "my_tree.txt" }
+[drwxrwxrwx   4.0K] 
+├── [-rwxrwxrwx    115] README.md
+├── [drwxrwxrwx   4.0K] capts
+│   ├── [-rwxrwxrwx  52.9K] 000.PNG
+│   ├── [-rwxrwxrwx  38.6K] 001.PNG
+│   ├── [-rwxrwxrwx 148.4K] 002.PNG
+│   ├── [-rwxrwxrwx 160.2K] 003.PNG
+│   ├── [-rwxrwxrwx  48.1K] no_cycles.PNG
+│   ├── [-rwxrwxrwx 148.8K] no_cyclesPNG.PNG
+│   ├── [-rwxrwxrwx 244.9K] symlink000.PNG
+│   └── [-rwxrwxrwx  32.5K] weirdlinksPNG.PNG
+├── [drwxrwxrwx   4.0K] f_000_basic
+│   ├── [-rwxrwxrwx   1.5K] Cargo.lock
+│   ├── [-rwxrwxrwx    206] Cargo.toml
+│   ├── [drwxrwxrwx   4.0K] src
+│   │   ├── [-rwxrwxrwx   1.6K] main.rs
+│   │   ├── [-rwxrwxrwx   2.3K] treefile.rs
+│   │   └── [-rwxrwxrwx   1.7K] treeprint.rs
+│   ├── [drwxrwxrwx   4.0K] target
+│   │   ├── [-rwxrwxrwx    177] CACHEDIR.TAG
+│   │   └── [drwxrwxrwx   4.0K] debug
+│   │       ├── [drwxrwxrwx   4.0K] build
+│   │       ├── [drwxrwxrwx   4.0K] deps
+│   │       │   ├── [-rwxrwxrwx 140.6K] libsame_file-213c7bc14f6a80a4.rlib
+│   │       │   ├── [-rwxrwxrwx  33.8K] libsame_file-213c7bc14f6a80a4.rmeta
+│   │       │   ├── [-rwxrwxrwx   1.5M] libwalkdir-43905f2ea9e119e6.rlib
+│   │       │   ├── [-rwxrwxrwx 106.1K] libwalkdir-43905f2ea9e119e6.rmeta
+│   │       │   ├── [-rwxrwxrwx   5.1M] rust_jacopo_project-e7adcdc32c7ae5ff
+│   │       │   ├── [-rwxrwxrwx    430] rust_jacopo_project-e7adcdc32c7ae5ff.d
+│   │       │   ├── [-rwxrwxrwx   1.2K] same_file-213c7bc14f6a80a4.d
+│   │       │   └── [-rwxrwxrwx   1.9K] walkdir-43905f2ea9e119e6.d
+│   │       ├── [drwxrwxrwx   4.0K] examples
+│   │       ├── [drwxrwxrwx   4.0K] incremental
+│   │       │   └── [drwxrwxrwx   4.0K] rust_jacopo_project-1u1750xytnq2k
+│   │       │       ├── [drwxrwxrwx   4.0K] s-gtvjl1wj9i-1amnjik-cuebtdmbj9psx61722s3ofj0u
+│   │       │       │   └── [62 entries exceeded filelimit, not printing dir]
+│   │       │       └── [-rwxrwxrwx      0] s-gtvjl1wj9i-1amnjik.lock
+│   │       ├── [-rwxrwxrwx   5.1M] rust_jacopo_project
+│   │       └── [-rwxrwxrwx    431] rust_jacopo_project.d
+│   └── [-rwxrwxrwx      0] this_is_000_folder.txt
+├── [drwxrwxrwx   4.0K] f_111_semi
+│   ├── [-rwxrwxrwx   7.5K] Cargo.lock
+│   ├── [-rwxrwxrwx    726] Cargo.toml
+│   ├── [-rwxrwxrwx     48] ciao
+│   ├── [-rwxrwxrwx      0] my_tree.txt
+│   ├── [-rwxrwxrwx   1.5K] notes.txt
+│   ├── [-rwxrwxrwx     90] rustfmt.toml
+│   ├── [drwxrwxrwx   4.0K] src
+│   │   ├── [-rwxrwxrwx   4.2K] main.rs
+│   │   └── [-rwxrwxrwx  18.8K] treelibs.rs
+│   └── [drwxrwxrwx   4.0K] target
+│       ├── [-rwxrwxrwx    177] CACHEDIR.TAG
+│       └── [drwxrwxrwx   4.0K] debug
+│           ├── [drwxrwxrwx   4.0K] build
+│           │   ├── [drwxrwxrwx   4.0K] proc-macro2-65805b24a937d00e
+│           │   │   ├── [-rwxrwxrwx     48] invoked.timestamp
+│           │   │   ├── [drwxrwxrwx   4.0K] out
+│           │   │   │   └── [-rwxrwxrwx    390] proc_macro2.d
+│           │   │   ├── [-rwxrwxrwx    113] output
+│           │   │   ├── [-rwxrwxrwx    138] root-output
+│           │   │   └── [-rwxrwxrwx      0] stderr
+│           │   ├── [drwxrwxrwx   4.0K] proc-macro2-e07aeca1fa0beaa1
+│           │   │   ├── [-rwxrwxrwx   4.5M] build-script-build
+│           │   │   ├── [-rwxrwxrwx   4.5M] build_script_build-e07aeca1fa0beaa1
+│           │   │   └── [-rwxrwxrwx    634] build_script_build-e07aeca1fa0beaa1.d
+│           │   ├── [drwxrwxrwx   4.0K] proc-macro2-eb115f75379d4a06
+│           │   │   ├── [-rwxrwxrwx     48] invoked.timestamp
+│           │   │   ├── [drwxrwxrwx   4.0K] out
+│           │   │   │   └── [-rwxrwxrwx    390] proc_macro2.d
+│           │   │   ├── [-rwxrwxrwx    113] output
+│           │   │   ├── [-rwxrwxrwx    138] root-output
+│           │   │   └── [-rwxrwxrwx      0] stderr
+│           │   ├── [drwxrwxrwx   4.0K] proc-macro2-eb305cc8899eef69
+│           │   │   ├── [-rwxrwxrwx   3.7M] build-script-build
+│           │   │   ├── [-rwxrwxrwx   3.7M] build_script_build-eb305cc8899eef69
+│           │   │   └── [-rwxrwxrwx    634] build_script_build-eb305cc8899eef69.d
+│           │   ├── [drwxrwxrwx   4.0K] serde-9d5ec94fe9ae0bc9
+│           │   │   ├── [-rwxrwxrwx   3.7M] build-script-build
+│           │   │   ├── [-rwxrwxrwx   3.7M] build_script_build-9d5ec94fe9ae0bc9
+│           │   │   └── [-rwxrwxrwx    607] build_script_build-9d5ec94fe9ae0bc9.d
+│           │   └── [drwxrwxrwx   4.0K] serde-fae6ccbdba9a92c3
+│           │       ├── [-rwxrwxrwx     48] invoked.timestamp
+│           │       ├── [drwxrwxrwx   4.0K] out
+│           │       ├── [-rwxrwxrwx     32] output
+│           │       ├── [-rwxrwxrwx    132] root-output
+│           │       └── [-rwxrwxrwx      0] stderr
+│           ├── [drwxrwxrwx   4.0K] deps
+│           │   └── [203 entries exceeded filelimit, not printing dir]
+│           ├── [drwxrwxrwx   4.0K] examples
+│           ├── [-rwxrwxrwx  14.1M] f_111_semi
+│           ├── [-rwxrwxrwx    314] f_111_semi.d
+│           └── [drwxrwxrwx   4.0K] incremental
+│               └── [12 entries exceeded filelimit, not printing dir]
+├── [drwxrwxrwx   4.0K] test_other
+│   ├── [-rwxrwxrwx      0] ciao.txt
+│   └── [drwxrwxrwx   4.0K] legitdir
+│       └── [-rwxrwxrwx      0] ciaociao.txt
+└── [drwxrwxrwx   4.0K] test_stuff
+    ├── [-rwxrwxrwx   7.7K] backup.txt
+    ├── [lrwxrwxrwx     18] c0symlink
+    │   └── [symlink cycle detected, will not expand it]
+    ├── [-rwxrwxrwx      0] ciao.txt
+    ├── [drwxrwxrwx   4.0K] ciao0
+    │   ├── [-rwxrwxrwx      0] ciao00.txt
+    │   ├── [drwxrwxrwx   4.0K] ciao0subdir
+    │   │   ├── [-rwxrwxrwx      0] hiddenfile.txt
+    │   │   ├── [lrwxrwxrwx      5] hiddensymlink
+    │   │   └── [lrwxrwxrwx      8] hiddentxtlink
+    │   ├── [lrwxrwxrwx     12] magiclink
+    │   │   └── [symlink cycle detected, will not expand it]
+    │   └── [lrwxrwxrwx      9] symto1
+    │       └── [symlink cycle detected, will not expand it]
+    ├── [drwxrwxrwx   4.0K] ciao1
+    │   ├── [lrwxrwxrwx     25] coso
+    │   ├── [lrwxrwxrwx     38] cosososos
+    │   ├── [lrwxrwxrwx      8] magiclink
+    │   ├── [lrwxrwxrwx     11] stavoltava
+    │   └── [lrwxrwxrwx      9] symto0
+    │       └── [symlink cycle detected, will not expand it]
+    ├── [-rwxrwxrwx    514] cosa
+    ├── [lrwxrwxrwx      5] grandpalink
+    │   └── [symlink cycle detected, will not expand it]
+    └── [-rwxrwxrwx     33] nooo.txt

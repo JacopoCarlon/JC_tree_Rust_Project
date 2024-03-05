@@ -1,3 +1,6 @@
+cargo run .. -lp --hsize --base-canonical --ladv -L 7 --filelimit 11 -o my_tree.txt
+
+
 perfect with :
 cargo clippy -- -Wclippy::all -Wclippy::cargo
 

@@ -81,7 +81,7 @@ pub struct Opt {
     base_canonical: bool,
 
     /// Colorize output
-    #[clap(short = 'c', default_value = "false")]
+    #[clap(short = 'c', default_value = "false", group = "printy_style")]
     colorize: bool,
 
     /// Print file type and permissions, as per "ls -l"
@@ -125,7 +125,7 @@ pub struct Opt {
     directory: PathBuf,
 
     /// Save to target file
-    #[clap(short = 'o', default_value = "")]
+    #[clap(short = 'o', default_value = "", group = "printy_style")]
     target_file: String,
 }
 
