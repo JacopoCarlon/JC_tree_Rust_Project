@@ -1,5 +1,6 @@
-cargo run .. -lp --hsize --base-canonical --ladv -L 7 --filelimit 11 -o my_tree.txt
-cargo run ../test_stuff/ -lpc --hsize --base-canonical --ladv
+cargo run .. -alp --hsize --base-canonical --ladv -L 7 --filelimit 11 -o my_tree.txt
+cargo run ../test_stuff/ -alpc --hsize --base-canonical --ladv
+cargo run ../test_stuff/ -alpc --hsize --base-canonical --ladv -if
 
 
 perfect with :
@@ -54,11 +55,17 @@ implements:
     /// Ignore cycle avoidance methods, faster but risks symlink cycles
     --fast_rsc
 
+    /// Advanced cycle detection and avoidance by pre-computing parents of target file
+    --ladv
+
     /// Set the depth # of the iteraton, if 0 it goes to depth infinity
     -L #
 
     /// do not descend directories with more than # entries
     -- filelimit #
+
+    /// Save to target file "string"
+    -o string
 
     /// Directory to start with
     #[clap(name = "DIRECTORY", default_value = ".")]

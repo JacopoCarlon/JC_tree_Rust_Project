@@ -4,38 +4,6 @@
     tree [-adfghilnopqrstuvxACDFNS] [-L level [-R]] [-H baseHREF] [-T title] [-o filename] [--nolinks] [-P pattern] [-I pattern] [--inodes] [--device] [--noreport] [--dirsfirst] [--version] [--help] [--filelimit #] [directory ...]
 */
 
-/*  I will only cover :
-    tree [-ad] [-L level] [--nolinks] [directory ...]
-    where :
-    -a
-    All files are printed. By default tree does not print hidden files (those beginning with a dot '.').
-    In no event does tree print the file system constructs '.' (current directory) and '..' (previous directory).
-
-    -d
-    List directories only.
-
-    -l
-    Follows symbolic links if they point to directories, as if they were directories.
-    Symbolic links that will result in recursion are avoided when detected.
-
-    -p
-    Print the file type and permissions for each file (as per ls -l).
-
-    -L level
-    Max display depth of the directory tree.
-
-    //  --filelimit #
-    //  Do not descend directories that contain more than # entries.
-
-    //  -o filename
-    //  Send output to filename.
-
-*/
-/*  the code will be divided in two phases:
-    -   get the dir-tree in local-memory
-    -   print nicely the dir-tree
-*/
-
 //  //  #[macro_use]
 //  //  extern crate Parser;
 
@@ -70,15 +38,15 @@ pub struct Opt {
 
     /// Print complete relative path prefix for all
     #[clap(short = 'f', default_value = "false", group = "extendPaths")]
-    full_path: bool,
-
-    ///Don't indent, useful if -f or --keep_canonical are used
-    #[clap(short = 'i', default_value = "false")]
-    no_indent: bool,
+    full_rel_path: bool,
 
     /// Force base canonical
     #[clap(long, default_value = "false")]
     base_canonical: bool,
+
+    ///Don't indent, useful if -f or --keep_canonical are used
+    #[clap(short = 'i', default_value = "false")]
+    no_indent: bool,
 
     /// Colorize output
     #[clap(short = 'c', default_value = "false", group = "printy_style")]

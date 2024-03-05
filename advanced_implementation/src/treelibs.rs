@@ -180,7 +180,7 @@ fn visit_dirs(
             let child_to_use;
             if opt.no_indent {
                 entry_to_use = NO_INDENT;
-                child_to_use = NO_INDENT
+                child_to_use = NO_INDENT;
             } else {
                 entry_to_use = if index == entries.len() - 1 {
                     FINAL_ENTRY
@@ -222,7 +222,7 @@ fn visit_dirs(
                                 format!("{:>6}", convert(realsize, 1024_u64))
                             }
                         } else {
-                            "".to_string()
+                            String::new()
                         }
                     );
                     my_write(
@@ -232,7 +232,7 @@ fn visit_dirs(
                             prefix,
                             entry_to_use,
                             internal,
-                            color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)
+                            color_output(opt.colorize, &path, opt.keep_canonical, opt.full_rel_path)
                         ),
                     );
                 } else {
@@ -242,7 +242,7 @@ fn visit_dirs(
                             "{}{}{}",
                             prefix,
                             entry_to_use,
-                            color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)
+                            color_output(opt.colorize, &path, opt.keep_canonical, opt.full_rel_path)
                         ),
                     );
                 }
@@ -288,8 +288,8 @@ fn visit_base(
     outfile: &mut dyn std::io::Write,
     base: &Path,          // done
     prefix: &str,         // done
-    keep_canonical: bool, // done         //  --full_path
-    full_path: bool,      // done         //  -f
+    keep_canonical: bool, // done         //  --full_rel_path
+    full_rel_path: bool,      // done         //  -f
     opt: &Opt,
 ) -> io::Result<()> {
     //  my_write(outfile, "visitBase");
@@ -317,7 +317,7 @@ fn visit_base(
                     format!("{:>6}", convert(realsize, 1024_u64))
                 }
             } else {
-                "".to_string()
+                String::new()
             }
         );
         my_write(
@@ -326,7 +326,7 @@ fn visit_base(
                 "{}{}{}",
                 prefix,
                 internal,
-                color_output(opt.colorize, base, keep_canonical, full_path)
+                color_output(opt.colorize, base, keep_canonical, full_rel_path)
             ),
         );
     } else {
@@ -335,7 +335,7 @@ fn visit_base(
             &format!(
                 "{}{}",
                 prefix,
-                color_output(opt.colorize, base, keep_canonical, full_path)
+                color_output(opt.colorize, base, keep_canonical, full_rel_path)
             ),
         );
     }
@@ -355,15 +355,20 @@ fn color_output(
     colorize: bool,
     path: &Path,
     keep_canonical: bool,
-    full_path: bool,
+    full_rel_path: bool,
 ) -> std::string::String {
     let filename: String;
     let symlink: String;
-    let parent = path.parent().unwrap();
+    let can_path = fs::canonicalize(path).unwrap();
+    let parent = can_path.parent().unwrap();
+    let _can_parent = fs::canonicalize(parent).unwrap();
     let mut is_sym_and_target_exists = false;
     //  .to_string_lossy().into_owned() == .to_str().unwrap().to_owned(),
     //  ma funziona anche se il path non è UTF8 valido
-    if !keep_canonical && !full_path {
+    //  println!("{}", path.display());
+    if !keep_canonical && !full_rel_path {
+        // default path
+        //  println!("enter first if : {} ; parent is : {} ", path.display(), parent.display());
         if path == Path::new(".") || path == Path::new("..") {
             filename = path.to_string_lossy().into_owned();
         } else {
@@ -373,24 +378,18 @@ fn color_output(
             Ok(v) => v.to_string_lossy().into_owned(),
             Err(_err) => String::new(),
         };
-    } else if full_path {
+    } else if full_rel_path {
+        //  println!("enter second if : {} ; parent is : {} ", path.display(), parent.display());
         filename = path.to_string_lossy().into_owned();
         symlink = match fs::read_link(path) {
             Ok(v) => v.to_string_lossy().into_owned(),
             Err(_err) => String::new(),
         };
     } else {
-        // keep canonical for all paths
-        println!("parent is : {}", parent.display());
-        if parent.exists() {
-            filename = fs::canonicalize(parent)
-                .unwrap()
-                .join(path.file_name().unwrap())
-                .to_string_lossy()
-                .into_owned();
-        } else {
-            filename = "".to_string();
-        }
+        // full canonical path
+        //  println!("enter last if : {} ; parent is : {} ", path.display(), parent.display());
+        filename = format!("{}",can_path.display());
+
         if path.is_symlink() {
             if parent.join(path.read_link().unwrap()).exists() {
                 symlink = fs::canonicalize(path)
@@ -404,6 +403,7 @@ fn color_output(
             symlink = String::new();
         }
     }
+    //  println!("{}", filename);
     if !symlink.is_empty() {
         is_sym_and_target_exists = parent.join(path.read_link().unwrap()).exists();
     }
@@ -514,17 +514,17 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
     // force_base_canonical is a flavour implementation of tree of mine.
     //  let force_base_canonical = false;
     let mut resulting_canonical = opt.keep_canonical;
-    let mut resulting_full_path = opt.full_path;
+    let mut resulting_full_rel_path = opt.full_rel_path;
     if opt.base_canonical {
         resulting_canonical = true;
-        resulting_full_path = false;
+        resulting_full_rel_path = false;
     }
     visit_base(
         outfile,
         &opt.directory,
         "", //  &String::from("")
         resulting_canonical,
-        resulting_full_path,
+        resulting_full_rel_path,
         opt,
     )?;
     if opt.directory.is_dir() {

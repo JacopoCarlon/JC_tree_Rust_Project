@@ -1,4 +1,4 @@
-Opt { show_hidden: false, only_dir: false, follow_symlink: true, keep_canonical: false, full_path: false, no_indent: false, base_canonical: true, colorize: false, perms: true, num_perms: false, size: false, hsize_ib: false, hsize: true, fast_rsc: false, ladv: true, level: 7, filelimit: 11, directory: "..", target_file: "my_tree.txt" }
+Opt { show_hidden: false, only_dir: false, follow_symlink: true, keep_canonical: false, full_rel_path: false, no_indent: false, base_canonical: true, colorize: false, perms: true, num_perms: false, size: false, hsize_ib: false, hsize: true, fast_rsc: false, ladv: true, level: 7, filelimit: 11, directory: "..", target_file: "my_tree.txt" }
 [drwxrwxrwx   4.0K] 
 ├── [-rwxrwxrwx    115] README.md
 ├── [drwxrwxrwx   4.0K] capts
