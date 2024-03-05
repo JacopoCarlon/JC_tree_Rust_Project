@@ -1,4 +1,5 @@
 cargo run .. -lp --hsize --base-canonical --ladv -L 7 --filelimit 11 -o my_tree.txt
+cargo run ../test_stuff/ -lpc --hsize --base-canonical --ladv
 
 
 perfect with :

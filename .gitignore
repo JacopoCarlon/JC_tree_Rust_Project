@@ -3,13 +3,9 @@
 **/target/
 
 # ignore testing folders (symlink problems for git)
-**/test_stuff/*
-**/test_other/*
-/test_other
-/test_stuff
-/test_other/
-/test_stuff/
+**/test_stuff/
+**/test_other/
 
 
 # utilities screenshots
-**/capts/
+**/capts/*
