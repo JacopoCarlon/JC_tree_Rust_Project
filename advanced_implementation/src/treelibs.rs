@@ -357,11 +357,11 @@ fn color_output(
     keep_canonical: bool,
     full_rel_path: bool,
 ) -> std::string::String {
+    //  println!("path : {} ;", path.display());
     let filename: String;
     let symlink: String;
-    let can_path = fs::canonicalize(path).unwrap();
-    let parent = can_path.parent().unwrap();
-    let _can_parent = fs::canonicalize(parent).unwrap();
+    let parent = path.parent().unwrap();
+    //  println!("path : {} ; parent is : {} ", path.display(), parent.display());
     let mut is_sym_and_target_exists = false;
     //  .to_string_lossy().into_owned() == .to_str().unwrap().to_owned(),
     //  ma funziona anche se il path non è UTF8 valido
@@ -388,8 +388,19 @@ fn color_output(
     } else {
         // full canonical path
         //  println!("enter last if : {} ; parent is : {} ", path.display(), parent.display());
-        filename = format!("{}",can_path.display());
-
+        let _can_path = fs::canonicalize(path).unwrap();
+        let _can_parent = fs::canonicalize(_can_path.parent().unwrap()).unwrap();
+        //  println!("enter last if : canpath {} ; canparent is : {} ", _can_path.display(), _can_parent.display());
+        //  if parent.exists(){
+        //      filename = fs::canonicalize(parent)
+        //          .unwrap()
+        //          .join(path.file_name().unwrap())
+        //          .to_string_lossy()
+        //          .into_owned();
+        //  }else{
+        //      filename = "".to_string();
+        //  }
+        filename = format!("{}", _can_path.display());
         if path.is_symlink() {
             if parent.join(path.read_link().unwrap()).exists() {
                 symlink = fs::canonicalize(path)
