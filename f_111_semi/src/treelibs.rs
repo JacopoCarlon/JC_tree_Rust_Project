@@ -4,13 +4,13 @@
 
 use std::error::Error;
 use std::fs;
+use std::fs::File;
 use std::io;
+use std::io::BufWriter;
+use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::path::PathBuf;
-use std::fs::File;
-use std::io::BufWriter;
-use std::io::Write;
 //  use std::cmp;
 //  use filesize::PathExt;
 //  use bytesize::ByteSize;
@@ -154,11 +154,12 @@ fn visit_dirs(
         // if current dir has too many entries, print none
         //  println!("testing filelimit");
         if (opt.filelimit != 0) && num_entries > opt.filelimit {
-            my_write(outfile, 
+            my_write(
+                outfile,
                 &format!(
                     "{}{}[{} entries exceeded filelimit, not printing dir]",
                     prefix, FINAL_ENTRY, num_entries
-                )
+                ),
             );
             return Ok(());
         }
@@ -224,23 +225,25 @@ fn visit_dirs(
                             "".to_string()
                         }
                     );
-                    my_write(outfile, 
+                    my_write(
+                        outfile,
                         &format!(
                             "{}{}{}{}",
                             prefix,
                             entry_to_use,
                             internal,
                             color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)
-                        )
+                        ),
                     );
                 } else {
-                    my_write(outfile, 
+                    my_write(
+                        outfile,
                         &format!(
                             "{}{}{}",
                             prefix,
                             entry_to_use,
                             color_output(opt.colorize, &path, opt.keep_canonical, opt.full_path)
-                        )
+                        ),
                     );
                 }
             }
@@ -259,12 +262,13 @@ fn visit_dirs(
                     if !opt.fast_rsc
                         && dirs_visited.contains(&fs::canonicalize(path.clone()).unwrap())
                     {
-                        my_write(outfile, 
+                        my_write(
+                            outfile,
                             &format!(
                                 "{}{}[symlink cycle detected, will not expand it]",
                                 prefix.to_string() + child_to_use,
                                 FINAL_ENTRY
-                            )
+                            ),
                         );
                         continue;
                     }
@@ -316,21 +320,23 @@ fn visit_base(
                 "".to_string()
             }
         );
-        my_write(outfile, 
+        my_write(
+            outfile,
             &format!(
                 "{}{}{}",
                 prefix,
                 internal,
                 color_output(opt.colorize, base, keep_canonical, full_path)
-            )
+            ),
         );
     } else {
-        my_write(outfile, 
+        my_write(
+            outfile,
             &format!(
                 "{}{}",
                 prefix,
                 color_output(opt.colorize, base, keep_canonical, full_path)
-            )
+            ),
         );
     }
 
@@ -376,13 +382,13 @@ fn color_output(
     } else {
         // keep canonical for all paths
         println!("parent is : {}", parent.display());
-        if parent.exists(){
+        if parent.exists() {
             filename = fs::canonicalize(parent)
                 .unwrap()
                 .join(path.file_name().unwrap())
                 .to_string_lossy()
                 .into_owned();
-        }else{
+        } else {
             filename = "".to_string();
         }
         if path.is_symlink() {
@@ -470,7 +476,7 @@ fn color_output(
     }
 }
 
-fn my_write(writer: &mut dyn std::io::Write, text:&str){
+fn my_write(writer: &mut dyn std::io::Write, text: &str) {
     writeln!(writer, "{}", text).unwrap();
 }
 
@@ -503,7 +509,7 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
         buf_file = BufWriter::new(file);
         outfile = &mut buf_file;
     }
-    my_write(outfile, format!("{:?}",opt).as_str() );
+    my_write(outfile, format!("{:?}", opt).as_str());
 
     // force_base_canonical is a flavour implementation of tree of mine.
     //  let force_base_canonical = false;
@@ -544,11 +550,12 @@ pub fn run(opt: &Opt) -> Result<(), Box<dyn Error>> {
             opt,
         )?;
     } else {
-        my_write(outfile, 
+        my_write(
+            outfile,
             &format!(
                 "{}{}[given base is not a directory]",
                 FINAL_CHILD, FINAL_ENTRY
-            )
+            ),
         );
     }
     Ok(())
