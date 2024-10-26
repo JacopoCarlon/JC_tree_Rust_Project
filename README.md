@@ -1,9 +1,11 @@
 # rust implementation of Tree (recursive directory listing program) 
 
-Linux implementation (standard of comparison) :
-<https://linux.die.net/man/1/tree>
+for reference, Linux implementation (standard of comparison) :
+    <https://linux.die.net/man/1/tree>
 
-Rust implementation :
+<br>
+
+# Rust implementation :
 tree path_root [options] [-o filename]
 
 including the following options : 
@@ -25,6 +27,15 @@ including the following options :
 -   -L <usize> : set (max) depth of iteration to <usize>
 -   --filelimit <usize> : do not descend into directories with more than <usize> entries
 -   -o <outpath(string)> : save output to <outpath>
+
+
+
+
+# How to Build 
+-   clone repository
+-   cd advanced_implementation
+-   cargo run path_root [options] [-o filename]
+
 
 
 This was the mandatory project for the "Foundamentals of Rust Programming" course by Prof. Luca Abeni , at Sant'Anna School of Advanced Studies (Pisa), 2022-2023.
