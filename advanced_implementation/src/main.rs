@@ -68,7 +68,7 @@ pub struct Opt {
     #[clap(long, default_value = "false", group = "filesize")]
     hsize_ib: bool,
 
-    /// Print file size in bytes converted in human readable format : K, M, G...
+    /// Print file size in bytes converted in human readable format : Ki, Mi, Gi...
     #[clap(long, default_value = "false", group = "filesize")]
     hsize: bool,
 

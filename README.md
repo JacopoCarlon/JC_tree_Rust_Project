@@ -41,3 +41,14 @@ including the following options :
 This was the mandatory project for the "Foundamentals of Rust Programming" course by Prof. Luca Abeni , at Sant'Anna School of Advanced Studies (Pisa), 2022-2023.
 
 by Jacopo Carlon
+
+
+
+
+
+
+During the development of this leanring project, I was inspired by, and used code from : 
+- https://www.georgevreilly.com/blog/2023/01/23/TreeInRust1WalkDirectories.html
+- https://www.georgevreilly.com/blog/2023/01/24/TreeInRust2PrintingTrees.html
+- https://github.com/alexanderwe/rs-tree
+
