@@ -1,6 +1,6 @@
 # Rust implementation of Tree (recursive directory listing program) 
 
-This is a project developed by me after attending the "Foundamentals of Rust Programming" course by Prof. Luca Abeni , at Sant'Anna School of Advanced Studies (Pisa), 2022-2023.
+This is a project developed by me after attending the "Foundamentals of Rust Programming" course by Prof. [Luca Abeni](https://github.com/lucabe72), at Sant'Anna School of Advanced Studies (Pisa), 2022-2023.
 
 
 
