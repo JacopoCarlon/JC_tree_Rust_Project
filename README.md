@@ -1,9 +1,15 @@
-# rust implementation of Tree (recursive directory listing program) 
+# Rust implementation of Tree (recursive directory listing program) 
 
-for reference, Linux implementation (standard of comparison) :
-    <https://linux.die.net/man/1/tree>
+This is a project developed by me after attending the "Foundamentals of Rust Programming" course by Prof. Luca Abeni , at Sant'Anna School of Advanced Studies (Pisa), 2022-2023.
 
-<br>
+
+
+# How to Build 
+-   clone repository
+-   cd advanced_implementation
+-   cargo run path_root [options] [-o filename]
+
+
 
 # Rust implementation :
 tree path_root [options] [-o filename]
@@ -28,17 +34,14 @@ including the following options :
 -   --filelimit <usize> : do not descend into directories with more than <usize> entries
 -   -o <outpath(string)> : save output to <outpath>
 
+<br>
+
+# Linux Reference : 
+For reference, Linux implementation (standard of comparison) :
+    <https://linux.die.net/man/1/tree>
 
 
 
-# How to Build 
--   clone repository
--   cd advanced_implementation
--   cargo run path_root [options] [-o filename]
-
-
-
-This was the mandatory project for the "Foundamentals of Rust Programming" course by Prof. Luca Abeni , at Sant'Anna School of Advanced Studies (Pisa), 2022-2023.
 
 by Jacopo Carlon
 
@@ -47,7 +50,7 @@ by Jacopo Carlon
 
 
 
-During the development of this leanring project, I was inspired by, and used code from : 
+During the development of this leanring project, I was inspired by, and used/modified code from : 
 - https://www.georgevreilly.com/blog/2023/01/23/TreeInRust1WalkDirectories.html
 - https://www.georgevreilly.com/blog/2023/01/24/TreeInRust2PrintingTrees.html
 - https://github.com/alexanderwe/rs-tree
